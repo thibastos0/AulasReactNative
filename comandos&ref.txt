@@ -1,0 +1,22 @@
+npx create-expo-app@latest
+https://reactnative.dev/docs/environment-setup
+
+https://reactnative.dev/docs/components-and-apis
+
+
+Instalar as dependências da web para Blank(typescript)
+alterar package.json
+
+"dependencies": {
+    "@expo/metro-runtime": "^4.0.0",
+    "expo": "~54.0.36",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-web": "~0.20.0"
+  },
+
+rm -rf node_modules package-lock.json && npm cache clean --force
+
+npx expo start -c
