@@ -23,10 +23,9 @@ export default function App() {
           onClick={() => console.log("Editou")} />
 
           <Text>{contador}</Text>
-          <Pressable onPress={ () => setContador(contador + 1) }>
-              <Botao titulo="Incrementar"
-              onClick={() => console.log("Incrementou")} />
-          </Pressable>
+            <Botao titulo="Incrementar"
+            onClick={() => setContador(contador + 1)} />
+          
 
           <Card
           style={styles.patternImage}
