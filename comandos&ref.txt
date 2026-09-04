@@ -1,4 +1,4 @@
-npx create-expo-app@latest
+npx create-expo-app@latest --template
 https://reactnative.dev/docs/environment-setup
 
 https://reactnative.dev/docs/components-and-apis
@@ -19,4 +19,9 @@ alterar package.json
 
 rm -rf node_modules package-lock.json && npm cache clean --force
 
+npm install expo (para atualizar o package-lock.json)
+
 npx expo start -c
+
+Navegação em telas:
+https://reactnative.dev/docs/navigation#react-navigation
