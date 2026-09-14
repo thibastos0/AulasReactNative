@@ -26,7 +26,7 @@ export default function Produtos({navigation}: any) {
         <Header />
 
         <View style={styles.banner}>
-            <Text style={styles.title}>
+            <Text style={styles.subtitle}>
                 Produtos
             </Text>
             <Text style={styles.description}>
@@ -98,18 +98,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 10,
         marginBottom: 10,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#e2e2e2',
         borderRadius: 5,
     },
     textMenu:{
         fontSize: 16,
         marginHorizontal: 10,
+        padding: 5,
+        backgroundColor: '#fff',
+        borderRadius: 5,
     },
     banner:{
         padding: 20,
     },
-    title: {
-        fontSize: 28,
+    subtitle: {
+        fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 10,
     },

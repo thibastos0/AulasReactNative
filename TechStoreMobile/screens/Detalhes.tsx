@@ -2,11 +2,12 @@ import {View, Text, StyleSheet} from 'react-native';
 import products from '../data/products';
 import ProductCard from '../components/ProductCard';
 import { useState } from 'react';
+import Header from '../components/Header';
 
 
 export default function Detalhes({route}:any){ 
-    const id=route.params.id;
-    const product = products.find((item) => item.id === id);
+    //const id=route.params.id;
+    const product = products.find((item) => item.id === route.params.id);
 
     const[quantidade, setQuantidade] = useState(0);
     
@@ -16,12 +17,13 @@ export default function Detalhes({route}:any){
 
     return(
         <View style={styles.container}>
-            <Text style={styles.title}>{product?.nome}</Text>
+
+            <Header />
 
            {product && <ProductCard
                 nome={product.nome}
-                detalhes={product.detalhes}
                 imagem={product.imagem}
+                detalhes={product.detalhes}
                 preco={product.preco}
                 adicionarCarrinho={adicionarCarrinho}
             />}
@@ -34,6 +36,7 @@ const styles = StyleSheet.create({
     container:{
         flex:1,
         padding:20,
+        alignItems:'center',
     },
     title: {
         fontSize: 24,
