@@ -8,8 +8,9 @@ import Header from '../components/Header';
 export default function Detalhes({route}:any){ 
     //const id=route.params.id;
     const product = products.find((item) => item.id === route.params.id);
+    const qtd = route.params.qtd;
 
-    const[quantidade, setQuantidade] = useState(0);
+    const[quantidade, setQuantidade] = useState(qtd?qtd:0);
     
     function adicionarCarrinho(){
         setQuantidade(quantidade + 1);
@@ -25,7 +26,8 @@ export default function Detalhes({route}:any){
                 imagem={product.imagem}
                 detalhes={product.detalhes}
                 preco={product.preco}
-                adicionarCarrinho={adicionarCarrinho}
+                //adicionarCarrinho={() => adicionarCarrinho()}
+                qtd={quantidade}
             />}
 
         </View>

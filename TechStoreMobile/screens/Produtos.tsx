@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import Header from '../components/Header';
-import Category from '../components/Category';
+//import Category from '../components/Category';
 import ProductCard from '../components/ProductCard';
 import products from '../data/products';
 import { useState } from 'react';
@@ -8,18 +8,35 @@ import { useState } from 'react';
 
 export default function Produtos({navigation}: any) {
 
-    const[quantidade, setQuantidade] = useState(0);
-    const[categoria, setCategoria] = useState('Todos');
+    // Estado para armazenar a quantidade de cada produto
+    const [produtos, setProdutos] = useState(products);
+
+    function adicionarCarrinho(productId: number) {
+        setProdutos((produtosAtuais) =>
+            produtosAtuais.map((produto) => {
+                if (produto.id === productId) {
+                    return {
+                        ...produto,
+                        qtd: produto.qtd + 1,
+                        total: (produto.qtd + 1) * parseFloat(produto.preco.
+                                                                replace('.', '').
+                                                                replace(',', '.')),
+                    };
+                }
+
+                return produto;
+            })
+        );
+    }
+
+    // Filtrar produtos por categoria com a mesma variável produtos criada acima, para não perder a quantidade de cada produto
+    const[categoria, setCategoria] = useState('Todos');    
     const produtosFiltrados =
     categoria === 'Todos' 
-    ? products : 
-    products.filter(
+    ? produtos : 
+    produtos.filter(
         product => product.categoria === categoria
     );
-
-    function adicionarCarrinho(){
-        setQuantidade(quantidade + 1);
-    }
 
   return (
     <View style={styles.container}>
@@ -65,22 +82,32 @@ export default function Produtos({navigation}: any) {
         </Text>
 
         <ScrollView>
-            {produtosFiltrados.map((product) => (
+            {
+            produtosFiltrados.map((p) => (
+                
                 <ProductCard
-                    key={product.id}
-                    nome={product.nome}
-                    categoria={product.categoria}
-                    preco={product.preco}
-                    adicionarCarrinho={adicionarCarrinho}
-                    onPressDetails={() => navigation.navigate('Detalhes', {id: product.id})}
+                    key={p.id}
+                    nome={p.nome}
+                    categoria={p.categoria}
+                    preco={p.preco}
+                    adicionarCarrinho={() => adicionarCarrinho(p.id)}
+                    qtd={p.qtd}
+                    valorTotal={p.total}
+                    onPressDetails={() => navigation.navigate('Detalhes', {id: p.id, qtd: p.qtd})}
                     verDetalhes="Ver Detalhes"
                     />
             ))}
         </ScrollView>
         <Text style={styles.text}>
-                Quantidade no carrinho: {quantidade}
+                Quantidade no carrinho: {produtos.reduce((total, product) => total + product.qtd, 0)}
         </Text>
-
+        <Pressable
+            onPress={() => navigation.navigate('Carrinho', {produtos: produtos})}
+        >
+            <Text style={styles.link}>
+                Ir para o carrinho
+            </Text>
+        </Pressable>
     </View>
   );
 }
@@ -122,6 +149,11 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: 16,
+        marginTop: 10,
+    },
+    link: {
+        fontSize: 16,
+        color: 'blue',
         marginTop: 10,
     },
 });

@@ -4,15 +4,6 @@ import{View, Text, Image, StyleSheet, Pressable} from 'react-native';
  //   console.log('Produto adicionado');
 //}
 
-type ProductCardProps = {
-    id: number;
-    nome: string;
-    categoria: string;
-    preco: number;
-    adicionarCarrinho: () => void;
-    onPressDetails: any;
-};
-
 export default function ProductCard(props:any){
     return(
         <View style={styles.card}>
@@ -44,14 +35,20 @@ export default function ProductCard(props:any){
                 R$ {props.preco}
             </Text>
 
+            {props.valorTotal > 0.0 && (
+                <Text>
+                    Total: R$ {props.valorTotal.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                </Text>
+            )}
+
             <Pressable
                 onPress={props.adicionarCarrinho}
             >
                 <Text style={styles.textoCarrinho}>
-                    Adicionar ao carrinho.
+                    Adicionar ao carrinho. ({props.qtd})
                 </Text>
             </Pressable>
-            
+
             <Pressable
                 onPress={props.onPressDetails}
             >
