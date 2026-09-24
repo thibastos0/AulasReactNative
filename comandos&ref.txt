@@ -46,3 +46,7 @@ npx expo install @expo/vector-icons
 
 Navegação em telas:
 https://reactnative.dev/docs/navigation#react-navigation
+
+sqlite web:
+https://docs.expo.dev/versions/latest/sdk/sqlite/
+npx expo customize metro.config.js
