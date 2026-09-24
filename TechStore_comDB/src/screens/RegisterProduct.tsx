@@ -3,7 +3,7 @@ import {
     Text,
     TextInput,
     Pressable,
-    Alert,
+    Alert, Platform
 } from "react-native";
 
 import { globalStyles } from "../themes/globalStyles";
@@ -21,6 +21,11 @@ export default function RegisterProduct(props: any) {
     async function registerProduct() {
 
         if (!name.trim()) {
+            if (Platform.OS === 'web') {
+                window.alert("O nome do produto não pode estar vazio.");
+                return;
+            }
+
             Alert.alert(
                 "Atenção",
                 "O nome do produto não pode estar vazio."            
@@ -29,6 +34,11 @@ export default function RegisterProduct(props: any) {
         }
 
         if (!price || Number(price) <= 0 || isNaN(Number(price))) {
+            if (Platform.OS === 'web') {
+                window.alert("O preço do produto não pode estar vazio.");
+                return;
+            }
+
             Alert.alert(
                 "Atenção",
                 "O preço do produto não pode estar vazio."
@@ -43,6 +53,21 @@ export default function RegisterProduct(props: any) {
                 name.trim(),
                 Number(price)
         );
+
+        if (Platform.OS === 'web') {
+            const confirm = window.confirm(
+                "Produto cadastrado com sucesso! Deseja cadastrar outro produto?"
+            );
+
+            if (confirm) {
+                setName('');
+                setPrice('');
+            } else {
+                props.navigation.goBack();
+            }
+
+            return;
+        }   
 
         Alert.alert("Sucesso", "Produto cadastrado com sucesso!",
                 [

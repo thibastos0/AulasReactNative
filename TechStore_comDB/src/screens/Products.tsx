@@ -1,5 +1,5 @@
 import { 
-    Alert,
+    Alert, Platform,
     FlatList, 
     View, 
     Text, 
@@ -45,6 +45,23 @@ export default function Products(props: any) {
     }
 
     async function deleteProduct(id_product: number) {
+
+        if (Platform.OS === 'web') {
+            const confirm = window.confirm(
+                "Deseja realmente excluir este produto?"
+            );
+
+            if (confirm) {
+                await db.runAsync(`
+                    DELETE FROM products 
+                    WHERE id_product = ?
+                `, id_product);
+
+                getProducts();
+            }
+
+            return;
+        }
 
         Alert.alert(
             "Atenção",
