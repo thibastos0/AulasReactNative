@@ -7,6 +7,15 @@ export const globalStyles = StyleSheet.create({
         backgroundColor: colors.light,
         padding: 20,
     },
+    contentContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+    },
+    centeredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     card: {
         backgroundColor: colors.light,
         borderWidth: 1,
@@ -23,6 +32,11 @@ export const globalStyles = StyleSheet.create({
     cardPrice: {
         fontSize: 16,
         color: colors.primary,
+    },
+    cardEdit: {
+        fontSize: 14,
+        color: colors.secondary,
+        marginTop: 5,
     },
     cardDelete: {
         fontSize: 14,
@@ -58,6 +72,17 @@ export const globalStyles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 5,
         alignItems: 'center',
+    },
+    buttonDisabled: {
+        backgroundColor: colors.disabled,
+    },
+    buttonCancel: {
+        backgroundColor: colors.secondary,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 10,
     },
     buttonText: {
         color: colors.light,

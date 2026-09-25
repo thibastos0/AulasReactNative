@@ -6,6 +6,7 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { initializeDatabase } from './src/database/database';
 import Products from './src/screens/Products';
 import RegisterProduct from './src/screens/RegisterProduct';
+import EditProduct from './src/screens/EditProduct';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,14 @@ export default function App() {
             component={RegisterProduct} 
             options={{ 
               title: 'Cadastrar Produto' 
+            }}
+          />
+
+          <Stack.Screen 
+            name="EditProduct"
+            component={EditProduct} 
+            options={{ 
+              title: 'Editar Produto' 
             }}
           />
         

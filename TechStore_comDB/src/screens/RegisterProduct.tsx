@@ -19,6 +19,7 @@ export default function RegisterProduct(props: any) {
     const [price, setPrice] = useState('');
         //inserir dados
     async function registerProduct() {
+        const normalizedPrice = price.trim().replace(',', '.');
 
         if (!name.trim()) {
             if (Platform.OS === 'web') {
@@ -33,7 +34,7 @@ export default function RegisterProduct(props: any) {
             return;
         }
 
-        if (!price || Number(price) <= 0 || isNaN(Number(price))) {
+        if (!normalizedPrice || Number(normalizedPrice) <= 0 || isNaN(Number(normalizedPrice))) {
             if (Platform.OS === 'web') {
                 window.alert("O preço do produto não pode estar vazio.");
                 return;
@@ -51,7 +52,7 @@ export default function RegisterProduct(props: any) {
             (name, price) VALUES (?, ?)
             `, 
                 name.trim(),
-                Number(price)
+                Number(normalizedPrice)
         );
 
         if (Platform.OS === 'web') {

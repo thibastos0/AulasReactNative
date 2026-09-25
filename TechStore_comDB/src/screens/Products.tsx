@@ -86,6 +86,12 @@ export default function Products(props: any) {
         );
     }
 
+    function editProduct(id_product: number) {
+        props.navigation.navigate('EditProduct', { 
+            id_product }
+        );
+    }
+
     return (
         <View style={globalStyles.container}>
             
@@ -106,6 +112,7 @@ export default function Products(props: any) {
                     <ProductCard
                         product={item}
                         onDelete={deleteProduct}
+                        onEdit={editProduct}
                     />
                 )}
             />

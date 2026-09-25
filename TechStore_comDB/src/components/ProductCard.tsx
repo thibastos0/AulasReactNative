@@ -14,10 +14,11 @@ type Product = {
 
 type ProductCardProps = {
     product: Product;
+    onEdit: (id_product: number) => void;
     onDelete: (id_product: number) => void;
 };
 
-export default function ProductCard({ product, onDelete }: ProductCardProps) {
+export default function ProductCard({ product, onDelete, onEdit }: ProductCardProps) {
     
         return (
             <View style={globalStyles.card}>
@@ -25,7 +26,8 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
                     {product.name}
                 </Text>
                 <Text style={globalStyles.cardPrice}>
-                    R$ {Number(product.price).toFixed(2)}
+                    R$ {Number(product.price).toFixed(2).replace('.', ',').
+                    replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
                 </Text>
                 <Pressable
                     onPress={() =>
@@ -34,6 +36,15 @@ export default function ProductCard({ product, onDelete }: ProductCardProps) {
                 >
                     <Text style={globalStyles.cardDelete}>
                         Excluir
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={() =>
+                        onEdit(product.id_product)
+                    }
+                >
+                    <Text style={globalStyles.cardEdit}>
+                        Editar
                     </Text>
                 </Pressable>
             </View>
