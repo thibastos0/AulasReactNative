@@ -6,6 +6,8 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { initializeDatabase } from './src/database/database';
 import Home from './src/screens/Home';
 import Menu from './src/screens/Menu';
+import AddMenuItem from './src/screens/AddMenuItem';
+import EditMenuItem from './src/screens/EditMenuItem';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +35,23 @@ export default function App() {
             title: 'Cardápio'
           }}
           />
+
+          <Stack.Screen
+          name="AddMenuItem"
+          component={AddMenuItem}
+          options={{
+            title: 'Adicionar Item'
+          }}
+          />
+
+          <Stack.Screen
+          name="EditMenuItem"
+          component={EditMenuItem}
+          options={{
+            title: 'Editar Item'
+          }}
+          />
+
 
         </Stack.Navigator>
       </NavigationContainer>

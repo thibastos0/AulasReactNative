@@ -6,6 +6,7 @@ import {
 
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import MainButton from '../components/MainButton';
 import ItemCard from '../components/ItemCard';
 import { globalStyles } from '../themes/globalStyles';
 
@@ -16,6 +17,7 @@ import {
     useEffect, 
     useState 
 } from 'react';
+
 
 type MenuItem = {
     id_product: number;
@@ -100,6 +102,12 @@ export default function Menu(props: any) {
             <Text style={globalStyles.subtitle}>
                 Aqui está o cardápio digital no modo de edição para teste do SQLite.
             </Text>
+
+            <MainButton
+                title="Adicionar Item"
+                navigateTo={props.navigation.navigate} 
+                target="AddMenuItem"
+            />
 
             <FlatList
                 data={menuItems}

@@ -37,20 +37,14 @@ export default function ItemCard({ product, onEdit, onDelete }: ItemCardProps) {
                     onDelete(product.id_product)
                 }
             >
-                <MaterialCommunityIcons name="delete" size={24} color="red" />
-                <Text style={globalStyles.cardActions}>
-                    Excluir
-                </Text>
+                <MaterialCommunityIcons name="delete" style={globalStyles.iconButton} size={24} color="red" />
             </Pressable>
             <Pressable
                 onPress={() =>
                     onEdit(product.id_product)
                 }
             >
-                <MaterialCommunityIcons name="pencil" size={24} color="blue" />
-                <Text style={globalStyles.cardActions}>
-                    Editar
-                </Text>
+                <MaterialCommunityIcons name="pencil" style={globalStyles.iconButton} size={24} color="blue" />
             </Pressable>
         </View>
     

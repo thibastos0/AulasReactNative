@@ -131,6 +131,7 @@ export const globalStyles = StyleSheet.create({
             android: { elevation: 3 },
             web: { boxShadow: '0px 2px 6px rgba(92, 36, 76, 0.2)' }
         }),
+        marginBottom: 10,
     },
     buttonDisabled: {
         backgroundColor: colors.disabled,
