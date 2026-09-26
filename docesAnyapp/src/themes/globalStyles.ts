@@ -155,4 +155,32 @@ export const globalStyles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    // Rodapé
+    footerContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: colors.footerBackground,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderTopWidth: 1,
+        borderColor: colors.border,
+        alignItems: 'center',
+    },
+    footerText: {
+        color: colors.footerText,
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    footerIconsContainer: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 8,
+    },
+    footerSocialLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
 });

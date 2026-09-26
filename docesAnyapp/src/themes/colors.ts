@@ -21,5 +21,9 @@ export const colors = {
 
     // Logos e Ícones
     logo: '#FF69B4',      // Cor do ícone/logo para consistência visual
+    instagram: '#C13584', // Cor do ícone do Instagram para integração de redes sociais
 
+    //rodapé
+    footerBackground: '#F8E1EB', // Fundo do rodapé em tom pastel suave
+    footerText: '#5C244C',       // Texto do rodapé em tom escuro para contraste
 };

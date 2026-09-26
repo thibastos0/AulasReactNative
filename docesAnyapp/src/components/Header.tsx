@@ -4,11 +4,11 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function Header() {
     return (
-        <View style={globalStyles.contentContainer /* ou globalStyles.centeredContainer - verificar o melhor */}> 
+        <View style={globalStyles.centeredContainer}> 
             <View style={globalStyles.logoIconContainer}>
                 <MaterialCommunityIcons
                     style={globalStyles.logoIcon}
-                    name="candy"
+                    name="cupcake"
                     size={50}
                 />
             </View>
