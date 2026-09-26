@@ -17,6 +17,19 @@ export const globalStyles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 20,
     },
+    cardContainer: {
+        backgroundColor: colors.cardBackground,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: colors.border,
+        ...Platform.select({
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+            android: { elevation: 2 },
+            web: { boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.05)' }
+        }),
+    },
     
     // Logo
     logoIconContainer: {
@@ -77,9 +90,6 @@ export const globalStyles = StyleSheet.create({
             web: { boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.05)' }
         }),
     },
-    cardInfo: {
-        flex: 1,
-    },
     cardName: {
         fontSize: 17,
         fontWeight: 'bold',
@@ -91,21 +101,28 @@ export const globalStyles = StyleSheet.create({
         fontWeight: '600',
         color: colors.accent,
     },
-    cardActions: {
-        flexDirection: 'row',
-        gap: 8,
-    },
     iconButton: {
         padding: 8,
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    cardCategory: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: colors.secondary,
+        marginBottom: 4,
+    },
+    cardDescription: {
+        fontSize: 14,
+        color: colors.text,
+    },
 
     // Formulários
     input: {
         backgroundColor: colors.cardBackground,
         borderWidth: 1,
+        width: '100%',
         borderColor: colors.border,
         borderRadius: 10,
         paddingHorizontal: 14,

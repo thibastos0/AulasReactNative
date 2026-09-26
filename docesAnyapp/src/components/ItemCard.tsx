@@ -3,6 +3,7 @@ import {
     Text,
     Pressable } from 'react-native';
 
+import { useNavigation } from '@react-navigation/native';
 import  { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { globalStyles } from '../themes/globalStyles';
@@ -23,15 +24,27 @@ type ItemCardProps = {
 };
 
 export default function ItemCard({ product, onEdit, onDelete }: ItemCardProps) {
+    const navigation = useNavigation<any>();
+
     return (
         <View style={globalStyles.card}>
-            <Text style={globalStyles.cardName}>
-                {product.name}
-            </Text>
-            <Text style={globalStyles.cardPrice}>
-                R$ {Number(product.price).toFixed(2).replace('.', ',').
-                replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-            </Text>
+
+            <Pressable
+                onPress={() =>
+                    navigation.navigate('Details', 
+                        { item: product })
+                }
+            >
+                <Text style={globalStyles.cardName}>
+                    {product.name}
+                </Text>
+
+                <Text style={globalStyles.cardPrice}>
+                    R$ {Number(product.price).toFixed(2).replace('.', ',').
+                    replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+                </Text>
+            </Pressable>
+
             <Pressable
                 onPress={() =>
                     onDelete(product.id_product)
@@ -39,6 +52,7 @@ export default function ItemCard({ product, onEdit, onDelete }: ItemCardProps) {
             >
                 <MaterialCommunityIcons name="delete" style={globalStyles.iconButton} size={24} color="red" />
             </Pressable>
+
             <Pressable
                 onPress={() =>
                     onEdit(product.id_product)
@@ -46,6 +60,7 @@ export default function ItemCard({ product, onEdit, onDelete }: ItemCardProps) {
             >
                 <MaterialCommunityIcons name="pencil" style={globalStyles.iconButton} size={24} color="blue" />
             </Pressable>
+
         </View>
     
     );

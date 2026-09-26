@@ -8,6 +8,7 @@ import Home from './src/screens/Home';
 import Menu from './src/screens/Menu';
 import AddMenuItem from './src/screens/AddMenuItem';
 import EditMenuItem from './src/screens/EditMenuItem';
+import Details from './src/screens/Details';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +50,14 @@ export default function App() {
           component={EditMenuItem}
           options={{
             title: 'Editar Item'
+          }}
+          />
+
+          <Stack.Screen
+          name="Details"
+          component={Details}
+          options={{
+            title: 'Detalhes do Item'
           }}
           />
 

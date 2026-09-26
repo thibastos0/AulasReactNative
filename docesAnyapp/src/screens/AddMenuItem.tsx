@@ -1,10 +1,15 @@
 import {
-    View,
     Text,
     TextInput,
-    Alert, Platform, 
-    Pressable} from 'react-native';
+    Alert, Platform,
+    Pressable,
+    KeyboardAvoidingView,
+    Keyboard,
+    ScrollView,
+} from 'react-native';
 
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { globalStyles } from '../themes/globalStyles';
 import { useSQLiteContext } from 'expo-sqlite';
 
@@ -98,56 +103,74 @@ export default function AddMenuItem(props: any) {
     }
 
     return (
-        <View style={globalStyles.container}>
-            <Text style={globalStyles.title}>
-                Adicionar Item ao Cardápio
-            </Text>
+        <KeyboardAvoidingView
+            style={globalStyles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
 
-            <TextInput
-                style={globalStyles.input}
-                placeholder="Nome do Produto"
-                value={name}
-                onChangeText={setName}
-            />
+            <Header />
 
-            <TextInput
-                style={globalStyles.input}
-                placeholder="Preço do Produto"
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="numeric"
-            />
-
-            <TextInput
-                style={globalStyles.input}
-                placeholder="Categoria do Produto"
-                value={category}
-                onChangeText={setCategory}
-            />
-
-            <TextInput
-                style={globalStyles.input}
-                placeholder="URL da Imagem do Produto"
-                value={image}
-                onChangeText={setImage}
-            />
-
-            <TextInput
-                style={[globalStyles.input, { height: 100 }]}
-                placeholder="Descrição do Produto"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-            />
-
-            <Pressable
-                style={globalStyles.button}
-                onPress={() => registerMenuItem()}
+            <ScrollView
+                contentContainerStyle={[globalStyles.contentContainer, { paddingBottom: 140 }]}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
             >
-                <Text style={globalStyles.buttonText}>
-                    Adicionar Item
+                <Text style={globalStyles.subtitle}>
+                    Adicionar Item ao Cardápio
                 </Text>
-            </Pressable>
-        </View>
+
+                <TextInput
+                    style={globalStyles.input}
+                    placeholder="Nome do Produto"
+                    value={name}
+                    onChangeText={setName}
+                />
+
+                <TextInput
+                    style={globalStyles.input}
+                    placeholder="Preço do Produto"
+                    value={price}
+                    onChangeText={setPrice}
+                    keyboardType="numeric"
+                />
+
+                <TextInput
+                    style={globalStyles.input}
+                    placeholder="Categoria do Produto"
+                    value={category}
+                    onChangeText={setCategory}
+                />
+
+                <TextInput
+                    style={globalStyles.input}
+                    placeholder="URL da Imagem do Produto"
+                    value={image}
+                    onChangeText={setImage}
+                />
+
+                <TextInput
+                    style={[globalStyles.input, { height: 100 }]}
+                    placeholder="Descrição do Produto"
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                />
+
+                <Pressable
+                    style={globalStyles.button}
+                    onPress={() => {
+                        Keyboard.dismiss();
+                        registerMenuItem();
+                    }}
+                >
+                    <Text style={globalStyles.buttonText}>
+                        Adicionar Item
+                    </Text>
+                </Pressable>
+            </ScrollView>
+
+            <Footer />
+
+        </KeyboardAvoidingView>
     );
 }
