@@ -1,22 +1,24 @@
 # DocesAnyApp
 
-Aplicativo mobile desenvolvido com Expo e React Native para apresentar uma loja de doces com tela inicial, navegação e estrutura pronta para crescimento.
+Aplicativo mobile desenvolvido com Expo, React Native e TypeScript para gerenciar um cardápio digital de doces. Os itens são armazenados localmente em SQLite e podem ser cadastrados, visualizados, editados e excluídos.
 
 ## 🚀 Visão geral
 
-O projeto foi criado para simular uma interface de loja de doces, com foco em:
+O projeto oferece:
 
-- tela inicial de boas-vindas;
-- navegação entre telas;
-- apresentação de produtos;
-- base para evolução com catálogo, carrinho e banco de dados local.
+- tela inicial com acesso ao cardápio;
+- listagem dos itens cadastrados;
+- cadastro de itens com nome, preço, categoria, imagem e descrição;
+- edição e exclusão de itens;
+- tela de detalhes do item selecionado;
+- persistência local com SQLite.
 
 ## 🧩 Tecnologias utilizadas
 
 - React Native
 - Expo
 - TypeScript
-- React Navigation
+- React Navigation Native Stack
 - Expo SQLite
 - Estilização com componentes e temas locais
 
@@ -38,12 +40,33 @@ docesAnyapp/
 └── README.md
 ```
 
+### Telas
+
+- `Home` — tela inicial do aplicativo.
+- `Menu` — lista do cardápio e ações de editar/excluir.
+- `AddMenuItem` — formulário de cadastro.
+- `EditMenuItem` — formulário de edição.
+- `Details` — visualização dos dados de um item.
+
+### Banco de dados
+
+O banco local `docesAnyapp.db` é inicializado na abertura do aplicativo. A tabela `menu_products` armazena:
+
+| Campo | Tipo | Descrição |
+| --- | --- | --- |
+| `id_product` | `INTEGER` | Identificador gerado automaticamente |
+| `name` | `TEXT` | Nome do produto |
+| `image` | `TEXT` | URL da imagem |
+| `category` | `TEXT` | Categoria do produto |
+| `description` | `TEXT` | Descrição do produto |
+| `price` | `REAL` | Preço do produto |
+
 ## ✅ Requisitos
 
 Antes de rodar o projeto, certifique-se de ter instalado:
 
 - Node.js 18 ou superior
-- npm ou bun
+- npm
 - Expo Go no celular ou emulador configurado
 
 ## 🔧 Instalação
@@ -81,15 +104,12 @@ No arquivo `package.json`, os scripts configurados são:
 
 ## 📌 Status do projeto
 
-Este é um projeto em desenvolvimento inicial, com estrutura básica pronta para expansão. A ideia atual é evoluir para uma experiência mais completa de e-commerce mobile.
+Projeto funcional para demonstração de um CRUD de cardápio com banco de dados local. A interface também pode ser executada na web com o Expo, usando os diálogos do navegador para confirmações e mensagens.
 
 ## 🛠️ Próximos passos possíveis
 
-- criar tela de produtos;
-- adicionar catálogo com cards de doces;
 - implementar busca e filtros;
 - adicionar carrinho de compras;
-- persistir dados com SQLite;
 - criar autenticação ou cadastro de usuários.
 
 ## 👤 Autor
