@@ -103,9 +103,14 @@ export default function AddMenuItem(props: any) {
     }
 
     return (
+
         <KeyboardAvoidingView
             style={globalStyles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={
+                Platform.OS === 'ios' 
+                ? 'padding' 
+                : undefined
+            }
         >
 
             <Header />
@@ -113,11 +118,12 @@ export default function AddMenuItem(props: any) {
             <ScrollView
                 contentContainerStyle={[globalStyles.contentContainer, { paddingBottom: 140 }]}
                 keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="on-drag"
             >
                 <Text style={globalStyles.subtitle}>
                     Adicionar Item ao Cardápio
                 </Text>
+
+                {/* Formulário para adicionar item ao cardápio */}
 
                 <TextInput
                     style={globalStyles.input}
