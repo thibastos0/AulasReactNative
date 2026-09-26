@@ -5,6 +5,8 @@ https://reactnative.dev/docs/components-and-apis
 
 
 Instalar as dependências da web para Blank(typescript)
+https://docs.expo.dev/workflow/web/#install-web-dependencies
+ou
 alterar package.json
 //Versão Expo 54
 "dependencies": {
