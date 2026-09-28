@@ -13,14 +13,14 @@ export default function Footer() {
             <View style={globalStyles.footerIconsContainer}>
                 <Pressable
                     style={globalStyles.footerSocialLink}
-                    onPress={() => window.open('https://www.instagram.com/docesdaany/', '_blank')}>
+                    onPress={() => window.open('https://www.instagram.com/anydocesda/', '_blank')}>
                     <MaterialCommunityIcons
                         name="instagram"
                         size={24} 
                         color={colors.instagram}
                      />
                     <Text style={globalStyles.footerText}>
-                        @docesdaany
+                        @anydocesda
                     </Text>
                 </Pressable>
             </View>
