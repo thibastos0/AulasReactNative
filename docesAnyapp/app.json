@@ -23,6 +23,12 @@
     },
     "plugins": [
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fce87759-4513-4eaa-bb8c-943a66126d68"
+      }
+    },
+    "owner": "thibastoss-team"
   }
 }
