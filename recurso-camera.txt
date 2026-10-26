@@ -1,0 +1,8 @@
+1. npx crate-expo-app@lateste --template
+
+2. camera:
+npx expo install expo-media-library (https://docs.expo.dev/versions/latest/sdk/media-library/)
+npx expo install expo-camera (https://docs.expo.dev/versions/latest/sdk/camera/)
+
+
+

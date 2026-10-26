@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "app-recursos-camera",
+    "slug": "app-recursos-camera",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir ${expo.name} acesso a sua camera para tirar fotos e gravar vídeos."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Permitir ${expo.name} acesso a sua galeria de fotos para salvar fotos e vídeos.",
+          "savePhotosPermission": "Permitir ${expo.name} salvar fotos na sua galeria de fotos.",
+          "writeOnlyPhotosPermission": "Permitir ${expo.name} salvar fotos na sua galeria de fotos."
+        }
+      ]
+    ]
+  }
+}
