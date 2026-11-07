@@ -278,6 +278,96 @@ const styles = StyleSheet.create({
 Se o projeto usar alias `@/components/CameraScreen`, mantenha o import já configurado no seu
 `tsconfig.json`. Caso contrário, use o caminho relativo mostrado acima.
 
+## Opção extra: usar `CamScreen.js` sem `legacy`
+
+Também existe uma implementação alternativa em `src/components/CamScreen.js`. Ela usa a API atual de
+`expo-media-library`, sem o caminho compatível `expo-media-library/legacy`. Para escolhê-la, altere o
+`App.tsx`:
+
+```tsx
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
+import CamScreen from '@/components/CamScreen';
+
+export default function App() {
+  return (
+    <View style={styles.container}>
+      <CamScreen />
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
+```
+
+Remova o import e o uso de `CameraScreen` ao fazer essa troca. Não renderize as duas telas ao mesmo
+tempo: ambas acessam a câmera, mas usam fluxos diferentes para salvar a foto.
+
+### O que muda no salvamento?
+
+Na implementação principal, o import é:
+
+```js
+import * as MediaLibrary from 'expo-media-library/legacy';
+```
+
+e o arquivo local retornado por `takePictureAsync()` é salvo diretamente com:
+
+```js
+await MediaLibrary.saveToLibraryAsync(foto.uri);
+```
+
+No `CamScreen.js`, o import não legado é explícito:
+
+```js
+import { Asset, requestPermissionsAsync } from 'expo-media-library';
+```
+
+Depois que a permissão é concedida, o arquivo da câmera é transformado em um item da biblioteca:
+
+```js
+const asset = await Asset.create(foto.uri);
+```
+
+`Asset` é a nova classe/representação de um item real da galeria. Ela não é a mesma coisa que
+`Image` do React Native nem que o pacote `expo-asset`: o `foto.uri` é o caminho temporário/local do
+arquivo capturado, enquanto o objeto retornado por `Asset.create()` representa o registro criado na
+biblioteca de mídia. Esse objeto fornece informações como `id` e pode ser usado posteriormente em
+operações da biblioteca, como adicionar a um álbum.
+
+Por isso, neste fluxo não se chama `saveToLibraryAsync()`: a própria criação do `Asset` registra o
+arquivo na galeria. O resultado deve ser tratado como uma promessa e, em caso de sucesso, a tela pode
+limpar a prévia:
+
+```js
+const { granted } = await requestPermissionsAsync();
+
+if (!granted) {
+  Alert.alert('Sem permissão', 'Autorize o acesso à galeria para salvar.');
+  return;
+}
+
+const asset = await Asset.create(foto.uri);
+Alert.alert('Foto salva!', `Identificador: ${asset.id}`);
+setFoto(null);
+```
+
+A permissão continua sendo obrigatória. `requestPermissionsAsync()` retorna uma resposta com `granted`
+e `status`; não confunda essa permissão com a permissão da câmera, que continua sendo obtida por
+`useCameraPermissions()`. O `try/catch` de `CamScreen.js` também é importante para informar falhas de
+permissão, caminho inválido ou criação do item.
+
+Use uma única estratégia por tela. Se o projeto exigir somente o salvamento simples por URI, mantenha
+`CameraScreen.js` e o import `/legacy`. Se quiser trabalhar com objetos da biblioteca, álbuns ou
+metadados do item criado, use `CamScreen.js` e o import moderno. Em ambos os casos, mantenha
+`expo-media-library` na mesma versão compatível com o Expo SDK do projeto e regenere o development
+build após alterações no `app.json`.
+
 ## Teste no aparelho
 
 ```bash
