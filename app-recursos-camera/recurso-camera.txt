@@ -1,0 +1,7 @@
+1. npx create-expo-app@lateste --template
+
+2. camera:
+npx expo install expo-camera (https://docs.expo.dev/versions/latest/sdk/camera/)
+
+3. media-library legacy
+npx expo install expo-media-library (https://docs.expo.dev/versions/latest/sdk/media-library/)

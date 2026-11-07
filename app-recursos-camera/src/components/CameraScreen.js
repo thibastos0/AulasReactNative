@@ -3,7 +3,7 @@ import { View, Text, Image, Button, StyleSheet, Alert } from 'react-native';
 import { useRef, useState } from 'react';
 
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Asset } from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 
 export default function CameraScreen() {
   const camera = useRef(null);
@@ -33,14 +33,11 @@ export default function CameraScreen() {
       const r = await pedirGaleria();
       if (!r.granted) return Alert.alert('Sem permissão', 'Autorize o acesso à galeria para salvar.');
     }
-    //await MediaLibrary.saveToLibraryAsync(foto.uri);
-
-    const asset = await Asset.fromURI(foto.uri);
-    asset.AssetLibrary.saveToLibraryAsync();
-    
-
+    await MediaLibrary.saveToLibraryAsync(foto.uri);
     Alert.alert('Foto salva!', 'Ela já está na galeria do aparelho.');
     setFoto(null);
+  
+    
   }
 
   if (foto) {
@@ -68,8 +65,26 @@ export default function CameraScreen() {
 }
 
 const s = StyleSheet.create({
-  tudo: { flex: 1, backgroundColor: '#000' },
-  linha: { flexDirection: 'row', justifyContent: 'space-around', padding: 12, backgroundColor: '#fff' },
-  centro: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 24 },
-  texto: { fontSize: 16, textAlign: 'center' },
+  tudo: { 
+    flex: 1,
+    width: '100%', 
+    backgroundColor: '#000' 
+  },
+  linha: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-around', 
+    padding: 12, 
+    backgroundColor: '#fff' 
+  },
+  centro: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    gap: 12, 
+    padding: 24 
+  },
+  texto: { 
+    fontSize: 16, 
+    textAlign: 'center' 
+  },
 });
