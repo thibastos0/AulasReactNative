@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 
 import CameraScreen from '@/components/CameraScreen';
+import CamScreen from '@/components/CamScreen';
 
 export default function App() {
   return (
