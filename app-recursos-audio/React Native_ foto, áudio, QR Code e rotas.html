@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>React Native: foto, áudio, QR Code e rotas</title>
+<style>
+:root{--bg:#fbfbf9;--fg:#1d2430;--mut:#5b6573;--card:#eef1f0;--code:#14202b;--ac:#0b6e99;--bd:#d9dedd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161c;--fg:#e4e9ee;--mut:#9aa6b2;--card:#18212a;--code:#0a0f14;--ac:#5cc0ea;--bd:#2a3541;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10161c;--fg:#e4e9ee;--mut:#9aa6b2;--card:#18212a;--code:#0a0f14;--ac:#5cc0ea;--bd:#2a3541;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .5rem}
+h2{font-size:1.4rem;margin:2.6rem 0 .6rem;padding-top:1.1rem;border-top:1px solid var(--bd)}
+h3{font-size:1.05rem;margin:1.4rem 0 .3rem}
+.lead{color:var(--mut);font-size:1.1rem}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--card);padding:.1em .35em;border-radius:4px}
+.f{margin:1rem 0 1.4rem;border-radius:8px;overflow:hidden;background:var(--code)}
+.f header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(127,127,127,.2);color:#e6edf3;font:.8rem ui-monospace,Menlo,Consolas,monospace}
+.f button{font:inherit;background:none;border:1px solid rgba(255,255,255,.35);color:inherit;border-radius:4px;padding:2px 8px;cursor:pointer}
+pre{margin:0;padding:14px;overflow-x:auto;color:#e6edf3;font:.82rem/1.55 ui-monospace,Menlo,Consolas,monospace}
+.n{background:var(--card);border-left:4px solid var(--ac);padding:8px 16px;border-radius:0 8px 8px 0;margin:1.2rem 0}
+.n p{margin:.3rem 0}
+a{color:var(--ac)}
+</style>
+</head>
+<body>
+<main>
+<h1>React Native: foto, áudio, QR Code e rotas</h1>
+<p class="lead">Neste tutorial você cria um app com quatro abas: uma <strong>câmera</strong> que tira fotos e as salva na galeria, um <strong>gravador</strong> de áudio com lista e exportação, um <strong>leitor de QR Code</strong> que salva o histórico e abre links, e um <strong>mapa</strong> que traça rotas e grava o trajeto percorrido.</p>
+
+<h2>1. Preparar o projeto</h2>
+<p>Requisitos: Node.js LTS, o app Expo Go no celular e computador e celular na mesma rede. Crie o projeto e instale os pacotes:</p>
+<script type="text/plain" data-file="Terminal">npx create-expo-app@latest app-recursos --template blank
+cd app-recursos
+
+npx expo install expo-camera expo-media-library expo-audio expo-sharing expo-location react-native-maps @react-native-async-storage/async-storage
+
+npx expo start</script>
+<p>Cada pacote tem um papel: <code>expo-camera</code> (foto e leitura de QR), <code>expo-media-library</code> (salvar na galeria), <code>expo-audio</code> (gravação), <code>expo-sharing</code> (exportar arquivos), <code>expo-location</code> (GPS), <code>react-native-maps</code> (mapa) e <code>async-storage</code> (guardar dados no aparelho).</p>
+<p>Para o app final, declare as mensagens de permissão no <code>app.json</code>, dentro de <code>expo</code>:</p>
+<script type="text/plain" data-file="app.json (trecho)">"plugins": [
+  ["expo-camera", { "cameraPermission": "Usamos a câmera para fotos e QR Codes." }],
+  ["expo-media-library", {
+    "photosPermission": "Acesso às fotos do aparelho.",
+    "savePhotosPermission": "Salvamos as fotos tiradas no app."
+  }],
+  ["expo-audio", { "microphonePermission": "Usamos o microfone para gravar áudio." }],
+  ["expo-location", { "locationWhenInUsePermission": "Usamos sua localização para traçar rotas." }]
+]</script>
+<div class="n"><p>No <strong>Expo Go</strong>, algumas restrições valem para a galeria no Android. Se o salvamento de fotos falhar lá, veja a nota na página do MediaLibrary e use um <em>development build</em>. Em builds Android, o mapa também exige uma chave do Google Maps (<code>android.config.googleMaps.apiKey</code>); no Expo Go ele já funciona.</p></div>
+
+<h2>2. Câmera: tirar e salvar fotos</h2>
+<p>O <code>CameraView</code> mostra a imagem ao vivo. Com uma <em>ref</em>, chamamos <code>takePictureAsync()</code>, que devolve a foto como arquivo temporário (<code>uri</code>). Para guardá-la de forma permanente, usamos <code>MediaLibrary.saveToLibraryAsync(uri)</code>, que a copia para a galeria. Pedimos só permissão de <strong>escrita</strong> (<code>writeOnly: true</code>), suficiente para salvar.</p>
+<script type="text/plain" data-file="components/CameraScreen.js">import { useRef, useState } from 'react';
+import { View, Text, Image, Button, StyleSheet, Alert } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+
+export default function CameraScreen() {
+  const camera = useRef(null);
+  const [permCamera, pedirCamera] = useCameraPermissions();
+  const [permGaleria, pedirGaleria] = MediaLibrary.usePermissions({ writeOnly: true });
+  const [lado, setLado] = useState('back');
+  const [flash, setFlash] = useState('off');
+  const [foto, setFoto] = useState(null);
+
+  if (!permCamera) return <View />; // ainda carregando
+  if (!permCamera.granted) {
+    return (
+      <View style={s.centro}>
+        <Text style={s.texto}>Precisamos da câmera para tirar fotos.</Text>
+        <Button title="Permitir câmera" onPress={pedirCamera} />
+      </View>
+    );
+  }
+
+  async function tirarFoto() {
+    const f = await camera.current?.takePictureAsync({ quality: 0.8 });
+    if (f) setFoto(f);
+  }
+
+  async function salvar() {
+    if (!permGaleria?.granted) {
+      const r = await pedirGaleria();
+      if (!r.granted) return Alert.alert('Sem permissão', 'Autorize o acesso à galeria para salvar.');
+    }
+    await MediaLibrary.saveToLibraryAsync(foto.uri);
+    Alert.alert('Foto salva!', 'Ela já está na galeria do aparelho.');
+    setFoto(null);
+  }
+
+  if (foto) {
+    return (
+      <View style={s.tudo}>
+        <Image source={{ uri: foto.uri }} style={s.tudo} resizeMode="contain" />
+        <View style={s.linha}>
+          <Button title="Descartar" color="#c0392b" onPress={() => setFoto(null)} />
+          <Button title="Salvar na galeria" onPress={salvar} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={s.tudo}>
+      <CameraView ref={camera} style={s.tudo} facing={lado} flash={flash} />
+      <View style={s.linha}>
+        <Button title="Virar" onPress={() => setLado((l) => (l === 'back' ? 'front' : 'back'))} />
+        <Button title={`Flash: ${flash}`} onPress={() => setFlash((f) => (f === 'off' ? 'on' : 'off'))} />
+        <Button title="📸 Foto" onPress={tirarFoto} />
+      </View>
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  tudo: { flex: 1, backgroundColor: '#000' },
+  linha: { flexDirection: 'row', justifyContent: 'space-around', padding: 12, backgroundColor: '#fff' },
+  centro: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 24 },
+  texto: { fontSize: 16, textAlign: 'center' },
+});</script>
+<h3>Como funciona</h3>
+<ul>
+<li>Os hooks de permissão (<code>useCameraPermissions</code>, <code>usePermissions</code>) devolvem o estado atual e uma função para pedir. Todos os hooks ficam <strong>antes</strong> de qualquer <code>return</code>.</li>
+<li><code>facing</code> escolhe câmera traseira ou frontal; <code>flash</code> liga ou desliga o flash.</li>
+<li>Depois da foto, mostramos uma prévia e deixamos o usuário descartar ou salvar. Assim nada vai para a galeria sem confirmação.</li>
+</ul>
+<p>Documentação: <a href="https://docs.expo.dev/versions/latest/sdk/camera/">Camera</a> · <a href="https://docs.expo.dev/versions/latest/sdk/media-library/">MediaLibrary</a></p>
+
+<h2>3. Áudio: gravar e salvar</h2>
+<p>A gravação usa o <code>expo-audio</code>. Por padrão, o arquivo vai para o <strong>cache</strong>, que o sistema pode limpar; passando <code>directory: 'document'</code> ele fica em pasta persistente do app (opção disponível em SDKs recentes; confira a página oficial da sua versão). Cada gravação entra em uma lista, que permite <strong>ouvir</strong> e <strong>exportar</strong> o arquivo para onde o usuário quiser (Arquivos, Drive, WhatsApp) pela folha de compartilhamento do sistema, com <code>expo-sharing</code>.</p>
+<script type="text/plain" data-file="components/AudioScreen.js">import { useState } from 'react';
+import { View, Text, Button, ScrollView, StyleSheet, Alert } from 'react-native';
+import {
+  useAudioRecorder, useAudioRecorderState, useAudioPlayer,
+  RecordingPresets, AudioModule, setAudioModeAsync,
+} from 'expo-audio';
+import * as Sharing from 'expo-sharing';
+
+const fmt = (ms = 0) => {
+  const s = Math.round(ms / 1000);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
+export default function AudioScreen() {
+  const gravador = useAudioRecorder({ ...RecordingPresets.HIGH_QUALITY, directory: 'document' });
+  const estado = useAudioRecorderState(gravador);
+  const player = useAudioPlayer(null);
+  const [gravacoes, setGravacoes] = useState([]);
+
+  async function iniciar() {
+    const p = await AudioModule.requestRecordingPermissionsAsync();
+    if (!p.granted) return Alert.alert('Sem permissão', 'Autorize o microfone nas configurações.');
+    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+    await gravador.prepareToRecordAsync();
+    gravador.record();
+  }
+
+  async function parar() {
+    const duracao = estado.durationMillis;
+    await gravador.stop();
+    await setAudioModeAsync({ allowsRecording: false });
+    setGravacoes((lista) => [{ id: Date.now(), uri: gravador.uri, duracao }, ...lista]);
+  }
+
+  function tocar(uri) {
+    player.replace(uri); // troca o arquivo do player
+    player.play();
+  }
+
+  async function exportar(uri) {
+    if (!(await Sharing.isAvailableAsync())) return Alert.alert('Indisponível', 'Compartilhamento não suportado aqui.');
+    await Sharing.shareAsync(uri, { dialogTitle: 'Salvar gravação' });
+  }
+
+  return (
+    <ScrollView contentContainerStyle={s.pagina}>
+      <Text style={s.titulo}>Gravador de áudio</Text>
+      {estado.isRecording ? (
+        <>
+          <Text style={s.tempo}>● {fmt(estado.durationMillis)}</Text>
+          <Button title="⏹ Parar e salvar" color="#c0392b" onPress={parar} />
+        </>
+      ) : (
+        <Button title="⏺ Gravar" onPress={iniciar} />
+      )}
+      {gravacoes.length === 0 && <Text style={s.mudo}>Nenhuma gravação ainda.</Text>}
+      {gravacoes.map((g, i) => (
+        <View key={g.id} style={s.item}>
+          <Text style={s.nome}>Gravação {gravacoes.length - i} · {fmt(g.duracao)}</Text>
+          <View style={s.acoes}>
+            <Button title="▶ Ouvir" onPress={() => tocar(g.uri)} />
+            <Button title="Exportar" onPress={() => exportar(g.uri)} />
+          </View>
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+const s = StyleSheet.create({
+  pagina: { padding: 20, gap: 12 },
+  titulo: { fontSize: 22, fontWeight: '700' },
+  tempo: { fontSize: 32, fontWeight: '700', color: '#c0392b', textAlign: 'center' },
+  mudo: { color: '#5b6573' },
+  item: { backgroundColor: '#fff', borderRadius: 10, padding: 12, gap: 8 },
+  nome: { fontWeight: '600' },
+  acoes: { flexDirection: 'row', gap: 16 },
+});</script>
+<h3>Como funciona</h3>
+<ul>
+<li><code>prepareToRecordAsync()</code> → <code>record()</code> → <code>stop()</code>: depois de parar, o caminho do arquivo está em <code>gravador.uri</code>.</li>
+<li>Lemos <code>durationMillis</code> <em>antes</em> de parar, pois o contador zera ao finalizar.</li>
+<li><code>player.replace(uri)</code> permite usar um único player para qualquer item da lista.</li>
+<li>Esta lista fica na memória: ao fechar o app ela some, embora os arquivos continuem na pasta do app. Para guardá-la, use o mesmo método do histórico de QR Code (seção 4).</li>
+</ul>
+<p>Documentação: <a href="https://docs.expo.dev/versions/latest/sdk/audio/">Audio</a> · <a href="https://docs.expo.dev/versions/latest/sdk/sharing/">Sharing</a></p>
+
+<h2>4. QR Code: ler, salvar e abrir</h2>
+<p>O mesmo <code>CameraView</code> lê códigos: basta informar o tipo em <code>barcodeScannerSettings</code> e tratar <code>onBarcodeScanned</code>. O leitor dispara o evento várias vezes por segundo, por isso uma <code>useRef</code> funciona como trava (só a primeira leitura vale). O resultado aparece em um painel com três ações: <strong>abrir</strong> (se for link), <strong>salvar</strong> no histórico e <strong>ler outro</strong>. O histórico é gravado com o AsyncStorage e sobrevive ao fechamento do app.</p>
+<script type="text/plain" data-file="components/QRScreen.js">import { useEffect, useRef, useState } from 'react';
+import { View, Text, Button, Linking, ScrollView, StyleSheet, Alert } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CHAVE = 'qr_historico';
+const ehLink = (t) => /^https?:\/\//i.test(t ?? '');
+
+export default function QRScreen() {
+  const [perm, pedir] = useCameraPermissions();
+  const [lido, setLido] = useState(null);
+  const [historico, setHistorico] = useState([]);
+  const travado = useRef(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(CHAVE)
+      .then((v) => v && setHistorico(JSON.parse(v)))
+      .catch(() => {});
+  }, []);
+
+  async function atualizar(lista) {
+    setHistorico(lista);
+    await AsyncStorage.setItem(CHAVE, JSON.stringify(lista));
+  }
+
+  const salvar = () => atualizar([{ dado: lido, em: new Date().toLocaleString('pt-BR') }, ...historico].slice(0, 50));
+
+  function aoLer({ data }) {
+    if (travado.current) return; // ignora leituras repetidas
+    travado.current = true;
+    setLido(data);
+  }
+
+  function lerOutro() {
+    travado.current = false;
+    setLido(null);
+  }
+
+  async function abrir(url) {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível abrir este link.');
+    }
+  }
+
+  if (!perm) return <View />;
+  if (!perm.granted) {
+    return (
+      <View style={s.centro}>
+        <Text>Precisamos da câmera para ler QR Codes.</Text>
+        <Button title="Permitir câmera" onPress={pedir} />
+      </View>
+    );
+  }
+
+  if (lido) {
+    return (
+      <ScrollView contentContainerStyle={s.pagina}>
+        <Text style={s.titulo}>QR Code lido</Text>
+        <Text selectable style={s.dado}>{lido}</Text>
+        {ehLink(lido) && <Button title="🔗 Abrir link" onPress={() => abrir(lido)} />}
+        <Button title="💾 Salvar no histórico" onPress={salvar} />
+        <Button title="Ler outro" color="#5b6573" onPress={lerOutro} />
+        <Text style={s.titulo}>Histórico</Text>
+        {historico.length === 0 && <Text>Vazio.</Text>}
+        {historico.map((h, i) => (
+          <Text key={i} style={s.item} onPress={() => ehLink(h.dado) && abrir(h.dado)}>
+            {h.em} · {h.dado}
+          </Text>
+        ))}
+        {historico.length > 0 && <Button title="Limpar histórico" color="#c0392b" onPress={() => atualizar([])} />}
+      </ScrollView>
+    );
+  }
+
+  return (
+    <View style={s.tudo}>
+      <CameraView
+        style={s.tudo}
+        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+        onBarcodeScanned={aoLer}
+      />
+      <Text style={s.dica}>Aponte a câmera para um QR Code</Text>
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  tudo: { flex: 1, backgroundColor: '#000' },
+  centro: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 24 },
+  pagina: { padding: 20, gap: 12 },
+  titulo: { fontSize: 20, fontWeight: '700', marginTop: 8 },
+  dado: { fontSize: 16, backgroundColor: '#fff', padding: 12, borderRadius: 8 },
+  item: { color: '#0b6e99', paddingVertical: 4 },
+  dica: { position: 'absolute', bottom: 24, alignSelf: 'center', color: '#fff', backgroundColor: '#0008', padding: 8, borderRadius: 8 },
+});</script>
+<h3>Como funciona</h3>
+<ul>
+<li>O texto lido pode ser um link, um Wi‑Fi, um contato ou texto livre. Só oferecemos “Abrir” quando começa com <code>http://</code> ou <code>https://</code>.</li>
+<li><strong>Segurança:</strong> nunca abra um link lido automaticamente. QR Codes maliciosos existem; por isso o usuário confirma tocando no botão.</li>
+<li>O <code>AsyncStorage</code> guarda apenas texto. Por isso convertemos a lista com <code>JSON.stringify</code> ao salvar e <code>JSON.parse</code> ao carregar.</li>
+</ul>
+<p>Documentação: <a href="https://docs.expo.dev/versions/latest/sdk/camera/#barcodescanningsettings">Leitura de códigos (Camera)</a> · <a href="https://docs.expo.dev/versions/latest/sdk/async-storage/">AsyncStorage</a> · <a href="https://reactnative.dev/docs/linking">Linking</a></p>
+
+<h2>5. Geolocalização: traçar rotas</h2>
+<p>Esta tela faz duas coisas, desenhadas com <code>Polyline</code> sobre o <code>MapView</code>:</p>
+<ul>
+<li><strong>Rota planejada (azul):</strong> segure o dedo no mapa para escolher um destino. O app consulta o serviço de rotas <strong>OSRM</strong> (gratuito, sem chave), que devolve a lista de pontos do caminho, a distância e o tempo.</li>
+<li><strong>Trajeto percorrido (laranja):</strong> o botão “Gravar trajeto” usa o GPS em tempo real e vai ligando os pontos por onde você passa, somando a distância com a fórmula de Haversine.</li>
+</ul>
+<script type="text/plain" data-file="components/RotaScreen.js">import { useEffect, useRef, useState } from 'react';
+import { View, Text, Button, Linking, StyleSheet, Alert } from 'react-native';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import * as Location from 'expo-location';
+
+const km = (m) => (m / 1000).toFixed(2);
+
+// Distância em metros entre dois pontos (fórmula de Haversine)
+function distancia(a, b) {
+  const R = 6371000, rad = Math.PI / 180;
+  const dLat = (b.latitude - a.latitude) * rad;
+  const dLon = (b.longitude - a.longitude) * rad;
+  const h = Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.latitude * rad) * Math.cos(b.latitude * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+export default function RotaScreen() {
+  const mapa = useRef(null);
+  const assinatura = useRef(null);
+  const ultimo = useRef(null);
+  const [origem, setOrigem] = useState(null);
+  const [destino, setDestino] = useState(null);
+  const [rota, setRota] = useState([]);
+  const [info, setInfo] = useState(null);
+  const [trajeto, setTrajeto] = useState([]);
+  const [gravando, setGravando] = useState(false);
+  const [metros, setMetros] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return Alert.alert('Sem permissão', 'Autorize a localização para usar o mapa.');
+      const loc = await Location.getCurrentPositionAsync({});
+      setOrigem(loc.coords);
+    })();
+    return () => assinatura.current?.remove();
+  }, []);
+
+  async function tracarRota(dest) {
+    setDestino(dest);
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${origem.longitude},${origem.latitude};${dest.longitude},${dest.latitude}?overview=full&geometries=geojson`;
+      const json = await (await fetch(url)).json();
+      if (json.code !== 'Ok') throw new Error(json.code);
+      const r = json.routes[0];
+      // O serviço devolve [longitude, latitude]; o mapa espera { latitude, longitude }
+      const pontos = r.geometry.coordinates.map(([lon, lat]) => ({ latitude: lat, longitude: lon }));
+      setRota(pontos);
+      setInfo({ km: km(r.distance), min: Math.round(r.duration / 60) });
+      mapa.current?.fitToCoordinates(pontos, {
+        edgePadding: { top: 60, right: 40, bottom: 220, left: 40 },
+        animated: true,
+      });
+    } catch (e) {
+      Alert.alert('Não foi possível traçar a rota', String(e.message ?? e));
+    }
+  }
+
+  async function alternarGravacao() {
+    if (assinatura.current) {
+      assinatura.current.remove();
+      assinatura.current = null;
+      return setGravando(false);
+    }
+    setTrajeto([]);
+    setMetros(0);
+    ultimo.current = null;
+    assinatura.current = await Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 5 },
+      ({ coords }) => {
+        const p = { latitude: coords.latitude, longitude: coords.longitude };
+        if (ultimo.current) setMetros((m) => m + distancia(ultimo.current, p));
+        ultimo.current = p;
+        setTrajeto((lista) => [...lista, p]);
+      }
+    );
+    setGravando(true);
+  }
+
+  function abrirNoApp() {
+    Linking.openURL(
+      `https://www.google.com/maps/dir/?api=1&origin=${origem.latitude},${origem.longitude}&destination=${destino.latitude},${destino.longitude}&travelmode=driving`
+    );
+  }
+
+  if (!origem) return <Text style={s.espera}>Obtendo sua localização…</Text>;
+
+  return (
+    <View style={s.tudo}>
+      <MapView
+        ref={mapa}
+        style={StyleSheet.absoluteFill}
+        showsUserLocation
+        initialRegion={{ latitude: origem.latitude, longitude: origem.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }}
+        onLongPress={(e) => tracarRota(e.nativeEvent.coordinate)}
+      >
+        {destino && <Marker coordinate={destino} title="Destino" />}
+        {rota.length > 0 && <Polyline coordinates={rota} strokeWidth={5} strokeColor="#0b6e99" />}
+        {trajeto.length > 1 && <Polyline coordinates={trajeto} strokeWidth={5} strokeColor="#e67e22" />}
+      </MapView>
+      <View style={s.painel}>
+        <Text style={s.dica}>Segure o dedo no mapa para escolher o destino.</Text>
+        {info && <Text style={s.info}>🚗 {info.km} km · cerca de {info.min} min</Text>}
+        {(gravando || metros > 0) && <Text>Percorrido: {km(metros)} km</Text>}
+        <View style={s.linha}>
+          <Button title={gravando ? '⏹ Parar trajeto' : '⏺ Gravar trajeto'} onPress={alternarGravacao} />
+          {destino && <Button title="Abrir no app de mapas" onPress={abrirNoApp} />}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  tudo: { flex: 1 },
+  espera: { padding: 24, textAlign: 'center' },
+  painel: { position: 'absolute', left: 12, right: 12, bottom: 12, backgroundColor: '#fff', borderRadius: 12, padding: 12, gap: 6 },
+  dica: { color: '#5b6573', fontSize: 13 },
+  info: { fontSize: 18, fontWeight: '700' },
+  linha: { flexDirection: 'row', justifyContent: 'space-between' },
+});</script>
+<h3>Como funciona</h3>
+<ul>
+<li><code>onLongPress</code> entrega a coordenada tocada em <code>e.nativeEvent.coordinate</code>.</li>
+<li>A resposta do OSRM vem em GeoJSON, com pares <code>[longitude, latitude]</code>. O <code>.map</code> inverte para o formato do mapa. Confundir a ordem é o erro mais comum.</li>
+<li><code>fitToCoordinates</code> ajusta o zoom para mostrar a rota inteira.</li>
+<li><code>distanceInterval: 5</code> registra um ponto a cada 5 metros, o que mantém a linha suave sem excesso de dados. A <code>ultimo</code> (<code>useRef</code>) guarda o ponto anterior para somar a distância.</li>
+<li>O botão final entrega a rota ao Google Maps/Apple Maps para navegação com voz.</li>
+</ul>
+<div class="n"><p>O servidor público do OSRM (<code>router.project-osrm.org</code>) é uma <strong>demonstração</strong>: serve para estudo, não para produção, e calcula rotas de carro. Em um app real, use um serviço com chave (Google Directions, OpenRouteService, Mapbox) ou hospede o seu OSRM.</p></div>
+<p>Documentação: <a href="https://docs.expo.dev/versions/latest/sdk/map-view/">react-native-maps (Expo)</a> · <a href="https://docs.expo.dev/versions/latest/sdk/location/">Location</a> · <a href="https://project-osrm.org/docs/v5.24.0/api/">API do OSRM</a></p>
+
+<h2>6. Juntar tudo no App.js</h2>
+<p>Uma barra de abas simples, controlada por <code>useState</code>, mostra uma tela por vez. Isso também garante que só uma câmera fique ativa.</p>
+<script type="text/plain" data-file="App.js">import { useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import CameraScreen from './components/CameraScreen';
+import AudioScreen from './components/AudioScreen';
+import QRScreen from './components/QRScreen';
+import RotaScreen from './components/RotaScreen';
+
+const ABAS = [
+  { id: 'foto', rotulo: '📷 Foto', Tela: CameraScreen },
+  { id: 'audio', rotulo: '🎙️ Áudio', Tela: AudioScreen },
+  { id: 'qr', rotulo: '🔳 QR', Tela: QRScreen },
+  { id: 'rota', rotulo: '🗺️ Rotas', Tela: RotaScreen },
+];
+
+export default function App() {
+  const [aba, setAba] = useState('foto');
+  const { Tela } = ABAS.find((a) => a.id === aba);
+
+  return (
+    <View style={s.raiz}>
+      <StatusBar style="dark" />
+      <View style={s.tela}><Tela /></View>
+      <View style={s.barra}>
+        {ABAS.map((a) => (
+          <Pressable key={a.id} style={s.aba} onPress={() => setAba(a.id)}>
+            <Text style={[s.rotulo, a.id === aba && s.ativa]}>{a.rotulo}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  raiz: { flex: 1, backgroundColor: '#f2f4f3', paddingTop: 44 },
+  tela: { flex: 1 },
+  barra: { flexDirection: 'row', backgroundColor: '#fff', paddingBottom: 20, borderTopWidth: 1, borderColor: '#d9dedd' },
+  aba: { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  rotulo: { fontSize: 13, color: '#5b6573' },
+  ativa: { color: '#0b6e99', fontWeight: '700' },
+});</script>
+<p>Salve tudo e teste, aba por aba: tire e salve uma foto; grave, ouça e exporte um áudio; leia um QR Code, salve e abra o link; segure o dedo no mapa para traçar uma rota e depois grave um trajeto caminhando.</p>
+
+<h2>7. Problemas comuns</h2>
+<ul>
+<li><strong>Foto não aparece na galeria (Android, Expo Go):</strong> limitação do Expo Go com a galeria. Use um development build.</li>
+<li><strong>QR Code lido várias vezes:</strong> verifique a trava <code>travado</code> em <code>aoLer</code>.</li>
+<li><strong>Mapa em branco em build Android:</strong> falta a chave do Google Maps no <code>app.json</code>.</li>
+<li><strong>Rota aparece no lugar errado (oceano):</strong> latitude e longitude invertidas.</li>
+<li><strong>Erro de módulo:</strong> rode <code>npx expo install &lt;pacote&gt;</code> e reinicie com <code>npx expo start -c</code>.</li>
+<li><strong>Sem permissão e o diálogo não volta:</strong> libere em Configurações do aparelho ou use <code>Linking.openSettings()</code>.</li>
+</ul>
+<p>As APIs mudam entre versões do SDK: em caso de divergência, vale a página oficial do Expo correspondente à sua versão (<a href="https://docs.expo.dev/">docs.expo.dev</a>).</p>
+</main>
+<script>
+document.querySelectorAll('script[type="text/plain"]').forEach(function(s){
+  var box=document.createElement('div');box.className='f';
+  var h=document.createElement('header'),n=document.createElement('span');n.textContent=s.dataset.file;
+  var b=document.createElement('button');b.type='button';b.textContent='Copiar';
+  var code=s.textContent.replace(/^\n/,'');
+  b.onclick=function(){
+    function ok(){b.textContent='Copiado';setTimeout(function(){b.textContent='Copiar'},1500)}
+    function fb(){var t=document.createElement('textarea');t.value=code;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(e){}t.remove()}
+    try{navigator.clipboard.writeText(code).then(ok,fb)}catch(e){fb()}
+  };
+  h.appendChild(n);h.appendChild(b);
+  var pre=document.createElement('pre');pre.textContent=code;
+  box.appendChild(h);box.appendChild(pre);s.parentNode.replaceChild(box,s);
+});
+</script>
+</body>
+</html>
