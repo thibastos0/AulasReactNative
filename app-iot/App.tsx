@@ -1,4 +1,5 @@
 import { 
+  ActivityIndicator,
   StyleSheet, 
   Switch, 
   Text, 
@@ -6,6 +7,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useMqtt, ConnectionStatus } from './src/hooks/useMqtt';
+import { useEffect, useState } from 'react';
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
   connecting: 'Conectando...',
@@ -21,6 +23,16 @@ const STATUS_COLOR: Record<ConnectionStatus, string> = {
 
 export default function App() {
   const { status, data, lastUpdate, setLed } = useMqtt();
+  const [showIndicator, setShowIndicator] = useState(false);
+
+  useEffect(() => {
+    if (showIndicator) {
+      const timer = setTimeout(() => {
+        setShowIndicator(false);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [showIndicator]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,10 +63,14 @@ export default function App() {
           <Text style={styles.label}>LED do ESP32</Text>
           <Text style={styles.small}>{data?.led ? 'Ligado' : 'Desligado'}</Text>
         </View>
+        {showIndicator && <ActivityIndicator size="large" color="#3b82f6" />}
         <Switch
           value={data?.led ?? false}
-          onValueChange={setLed}
-          disabled={status !== 'connected'}
+          onValueChange={(value) => {
+            setLed(value);
+            setShowIndicator(true);
+          }}
+          disabled={status !== 'connected' || showIndicator}
         />
       </View>
 
