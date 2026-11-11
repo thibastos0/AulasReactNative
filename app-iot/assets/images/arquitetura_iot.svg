@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 320" width="100%" height="100%" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="820" height="320" rx="16" fill="#0f172a"/>
+  <text x="410" y="34" fill="#f8fafc" font-size="18" font-weight="700" text-anchor="middle">Arquitetura de Comunicação IoT (Publish / Subscribe)</text>
+
+  <!-- Node 1: ESP32 / Wokwi -->
+  <g transform="translate(30, 85)">
+    <rect width="180" height="150" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <text x="90" y="32" fill="#93c5fd" font-size="15" font-weight="700" text-anchor="middle">ESP32 / Wokwi</text>
+    <text x="90" y="54" fill="#cbd5e1" font-size="11" text-anchor="middle">sketch.ino (PubSubClient)</text>
+    <rect x="20" y="72" width="140" height="28" rx="6" fill="#0f172a" stroke="#22c55e"/>
+    <text x="90" y="90" fill="#86efac" font-size="11" text-anchor="middle">DHT22 (a cada 3s)</text>
+    <rect x="20" y="108" width="140" height="28" rx="6" fill="#0f172a" stroke="#f59e0b"/>
+    <text x="90" y="126" fill="#fcd34d" font-size="11" text-anchor="middle">LED (GPIO 26)</text>
+  </g>
+
+  <!-- Node 2: HiveMQ Cloud Broker -->
+  <g transform="translate(320, 75)">
+    <rect width="180" height="170" rx="14" fill="#1e293b" stroke="#a855f7" stroke-width="2.5"/>
+    <text x="90" y="32" fill="#d8b4fe" font-size="15" font-weight="700" text-anchor="middle">HiveMQ Broker</text>
+    <text x="90" y="50" fill="#94a3b8" font-size="11" text-anchor="middle">broker.hivemq.com</text>
+    <rect x="14" y="66" width="152" height="40" rx="6" fill="#0f172a" stroke="#22c55e" stroke-dasharray="3,2"/>
+    <text x="90" y="83" fill="#86efac" font-size="10" font-weight="600" text-anchor="middle">Tópico Telemetria:</text>
+    <text x="90" y="98" fill="#e2e8f0" font-size="9.5" font-family="monospace" text-anchor="middle">iotdemo/thibastos/sensor</text>
+    <rect x="14" y="114" width="152" height="40" rx="6" fill="#0f172a" stroke="#f59e0b" stroke-dasharray="3,2"/>
+    <text x="90" y="131" fill="#fcd34d" font-size="10" font-weight="600" text-anchor="middle">Tópico Comando:</text>
+    <text x="90" y="146" fill="#e2e8f0" font-size="9.5" font-family="monospace" text-anchor="middle">iotdemo/thibastos/led/set</text>
+  </g>
+
+  <!-- Node 3: App React Native -->
+  <g transform="translate(610, 85)">
+    <rect width="180" height="150" rx="12" fill="#1e293b" stroke="#06b6d4" stroke-width="2"/>
+    <text x="90" y="32" fill="#67e8f9" font-size="15" font-weight="700" text-anchor="middle">App React Native</text>
+    <text x="90" y="54" fill="#cbd5e1" font-size="11" text-anchor="middle">useMqtt.ts (paho-mqtt)</text>
+    <rect x="20" y="72" width="140" height="28" rx="6" fill="#0f172a" stroke="#22c55e"/>
+    <text x="90" y="90" fill="#86efac" font-size="11" text-anchor="middle">Cards Temp / Umid</text>
+    <rect x="20" y="108" width="140" height="28" rx="6" fill="#0f172a" stroke="#f59e0b"/>
+    <text x="90" y="126" fill="#fcd34d" font-size="11" text-anchor="middle">Switch LED ON/OFF</text>
+  </g>
+
+  <!-- Arrows Left <-> Center (MQTT Port 1883) -->
+  <text x="265" y="95" fill="#93c5fd" font-size="11" font-weight="700" text-anchor="middle">MQTT (TCP)</text>
+  <text x="265" y="110" fill="#94a3b8" font-size="10" text-anchor="middle">Porta 1883</text>
+
+  <!-- Publish Telemetry ESP32 -> Broker -->
+  <line x1="212" y1="145" x2="316" y2="145" stroke="#22c55e" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="265" y="138" fill="#86efac" font-size="9.5" text-anchor="middle">PUB JSON</text>
+
+  <!-- Subscribe Command Broker -> ESP32 -->
+  <line x1="318" y1="195" x2="214" y2="195" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrowAmber)"/>
+  <text x="265" y="212" fill="#fcd34d" font-size="9.5" text-anchor="middle">SUB "ON"/"OFF"</text>
+
+  <!-- Arrows Center <-> Right (WSS Port 8884) -->
+  <text x="555" y="95" fill="#67e8f9" font-size="11" font-weight="700" text-anchor="middle">WebSockets (WSS)</text>
+  <text x="555" y="110" fill="#94a3b8" font-size="10" text-anchor="middle">Porta 8884 (/mqtt)</text>
+
+  <!-- Subscribe Telemetry Broker -> App -->
+  <line x1="502" y1="145" x2="606" y2="145" stroke="#22c55e" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="555" y="138" fill="#86efac" font-size="9.5" text-anchor="middle">SUB JSON</text>
+
+  <!-- Publish Command App -> Broker -->
+  <line x1="608" y1="195" x2="504" y2="195" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrowAmber)"/>
+  <text x="555" y="212" fill="#fcd34d" font-size="9.5" text-anchor="middle">PUB "ON"/"OFF"</text>
+
+  <!-- Legend Footer -->
+  <g transform="translate(185, 285)" font-size="11" fill="#cbd5e1">
+    <circle cx="0" cy="-4" r="5" fill="#22c55e"/>
+    <text x="10" y="0">Fluxo de Telemetria: {"temperature", "humidity", "led"}</text>
+    <circle cx="305" cy="-4" r="5" fill="#f59e0b"/>
+    <text x="315" y="0">Fluxo de Comando: "ON" | "OFF"</text>
+  </g>
+</svg>
