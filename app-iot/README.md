@@ -10,6 +10,7 @@ A solução integra um microcontrolador **ESP32** (simulado no **Wokwi**) a um a
 
 Com esta aplicação, você é capaz de:
 - **Monitorar em tempo real** a temperatura (`°C`) e a umidade relativa do ar (`%`) lidas pelo sensor **DHT22** conectado ao ESP32.
+- **Acompanhar a pressão barométrica (QNH — Ajuste de Altímetro)** medida pelo sensor **BMP180** em hectopascals (`hPa`), com conversão automática na interface para polegadas de mercúrio (`inHg`), trazendo uma aplicação prática voltada à **telemetria meteorológica de aeródromos e aviação**.
 - **Controlar remotamente** um **LED físico/simulado** no pino do ESP32 diretamente pela interface do celular através de um botão `Switch`, com confirmação de estado sincronizada via telemetria.
 
 ---
@@ -24,8 +25,9 @@ Abaixo está o diagrama esquemático da montagem eletrônica configurada no simu
 
 | Componente | Identificador (`diagram.json`) | Função no Circuito |
 | :--- | :---: | :--- |
-| **ESP32 DevKit v4** | `esp` (`board-esp32-devkit-c-v4`) | Microcontrolador principal com módulo Wi-Fi integrado, responsável por ler o sensor, acionar o LED e comunicar-se via MQTT. |
+| **ESP32 DevKit v4** | `esp` (`board-esp32-devkit-c-v4`) | Microcontrolador principal com módulo Wi-Fi integrado, responsável por ler os sensores, acionar o LED e comunicar-se via MQTT. |
 | **Sensor DHT22** | `dht` (`wokwi-dht22`) | Sensor digital para medição de temperatura e umidade relativa do ar. |
+| **Sensor BMP180** | `bmp1` (`wokwi-bmp180` / `board-bmp180`) | Sensor barométrico digital via protocolo **I2C** para medição de pressão atmosférica e cálculo do ajuste de altímetro (**QNH**). |
 | **LED Vermelho + Resistor 220Ω** | `led1` (`wokwi-led`) + `r1` (`wokwi-resistor`) | Atuador para indicação visual acionado remotamente (o resistor de 220Ω limita a corrente para proteger o LED e a porta lógica). |
 
 ### Mapeamento de Pinos
@@ -37,6 +39,10 @@ As conexões físicas definidas no arquivo `wokiwi_example/diagram.json` seguem 
 | **DHT22** | `VCC` | `3V3` | 🔴 Vermelho | Alimentação de 3.3V do sensor |
 | **DHT22** | `SDA` | `GPIO 4` | 🟢 Verde | Linha de dados digital (leitura de temperatura/umidade) |
 | **DHT22** | `GND` | `GND.2` | ⚫ Preto | Referência de terra (Ground) |
+| **BMP180** | `VCC` | `3V3` | 🔴 Vermelho | Alimentação de 3.3V do barômetro |
+| **BMP180** | `GND` | `GND.3` | ⚫ Preto | Referência de terra (Ground) |
+| **BMP180** | `SDA` | `GPIO 21` | 🔵 Azul | Linha de dados serial do barramento **I2C** |
+| **BMP180** | `SCL` | `GPIO 22` | 🟡 Amarelo | Linha de clock serial do barramento **I2C** |
 | **Resistor 220Ω (`r1`)** | Terminal `1` | `GPIO 26` | 🟠 Laranja | Saída digital de controle do LED |
 | **LED Vermelho (`led1`)** | `A` (Ânodo) | Terminal `2` do Resistor `r1` | 🟠 Laranja | Entrada positiva do LED com corrente limitada |
 | **LED Vermelho (`led1`)** | `C` (Cátodo) | `GND.1` | ⚫ Preto | Fechamento do circuito no terra (Ground) |
@@ -53,9 +59,9 @@ A comunicação entre o hardware e o aplicativo móvel utiliza o padrão **Publi
 
 1. **Telemetria (`ESP32 ➔ App`)**:
    - No firmware (`wokiwi_example/sketch.ino`), o ESP32 conecta-se ao broker `broker.hivemq.com` via **TCP na porta `1883`**.
-   - A cada **3 segundos**, o microcontrolador lê os valores do sensor **DHT22** e publica um payload JSON no tópico `iotdemo/thibastos/sensor`:
+   - A cada **3 segundos**, o microcontrolador lê os valores dos sensores **DHT22** e **BMP180** e publica um payload JSON no tópico `iotdemo/thibastos/sensor`:
      ```json
-     {"temperature": 24.5, "humidity": 60.0, "led": true}
+     {"temperature": 24.0, "humidity": 40.0, "qnh": 1013.2, "led": false}
      ```
    - O aplicativo React Native, que assina (`subscribe`) esse mesmo tópico via **WebSockets Seguro (WSS) na porta `8884`**, recebe o JSON instantaneamente e atualiza os cartões na tela.
 
@@ -117,6 +123,11 @@ Projeto   DEVICE_ID    Recurso/Canal (sensor ou led/set)
 > - No aplicativo mobile: [`src/config.ts`](./src/config.ts) (`const DEVICE_ID = 'seu_id_unico';`)
 > - No firmware do ESP32: [`wokiwi_example/sketch.ino`](./wokiwi_example/sketch.ino) (`TOPIC_SENSOR` e `TOPIC_LED_SET`)
 
+> 💡 **Conexão com Engenharia de Software — Padrão de Projeto *Observer***:  
+> A arquitetura **Publish/Subscribe** do MQTT é uma implementação distribuída do clássico **Padrão de Projeto *Observer* (GoF)**:
+> - **Na Telemetria**: O aplicativo React Native atua como ***Observer* (*Subscriber*)** do tópico de sensores, reagindo automaticamente a cada estado publicado pelo ESP32 (***Subject* / *Publisher***).
+> - **No Comando do LED (Inversão Bidirecional de Papéis)**: Quando o usuário aciona o `Switch` no celular, os papéis se invertem — o aplicativo passa a atuar como ***Publisher*** no tópico `led/set`, enquanto o ESP32 atua como ***Observer* (*Subscriber*)** aguardando notificações para acionar o hardware.
+
 ---
 
 ## 📱 5. Conceitos de Programação Mobile Aplicados
@@ -126,18 +137,19 @@ O código do aplicativo foi estruturado seguindo boas práticas modernas de enge
 ### 1. Separação de Responsabilidades (*Separation of Concerns — SoC*)
 O projeto divide claramente o papel de cada arquivo para facilitar a manutenção e o reaproveitamento:
 - **Configuração ([`src/config.ts`](./src/config.ts))**: Centraliza constantes de infraestrutura (`host`, `port`, `path`, `DEVICE_ID` e nomes dos tópicos), evitando valores fixos (*magic strings*) espalhados pelo código.
-- **Camada de Rede e Estado ([`src/hooks/useMqtt.ts`](./src/hooks/useMqtt.ts))**: Encapsula toda a complexidade do protocolo MQTT (`paho-mqtt`) dentro de um *Custom Hook*, expondo uma interface limpa e fortemente tipada em TypeScript (`SensorData` e `ConnectionStatus`).
-- **Camada Visual ([`App.tsx`](./App.tsx))**: Foca exclusivamente na apresentação visual (JSX e `StyleSheet`) e na interação com o usuário, consumindo apenas `{ status, data, lastUpdate, setLed }` fornecidos pelo hook.
+- **Camada de Rede e Estado ([`src/hooks/useMqtt.ts`](./src/hooks/useMqtt.ts))**: Encapsula toda a complexidade do protocolo MQTT (`paho-mqtt`) dentro de um *Custom Hook*, expondo uma interface limpa e fortemente tipada em TypeScript (`SensorData` — incluindo `temperature`, `humidity`, `qnh: number` e `led` — e `ConnectionStatus`).
+- **Camada Visual ([`App.tsx`](./App.tsx))**: Foca exclusivamente na apresentação visual (JSX, `ScrollView` e `StyleSheet`), na conversão de unidades (`hPa` para `inHg`) e na interação com o usuário, consumindo apenas `{ status, data, lastUpdate, setLed }` fornecidos pelo hook.
 
 ### 2. Ciclo de Vida e Prevenção de *Memory Leaks*
 Conexões em tempo real exigem controle rigoroso do ciclo de vida dos componentes no React Native:
 - **Persistência com `useRef`**: A instância do cliente MQTT (`clientRef`) é armazenada em um `useRef` em vez de um `useState`. Isso garante que o objeto de conexão persista entre renderizações sem disparar ciclos de re-renderização desnecessários na árvore de componentes.
 - **Limpeza (*Cleanup*) no `useEffect`**: O `useEffect` que inicializa a conexão retorna uma função de limpeza (`return () => { if (client.isConnected()) client.disconnect(); }`). Quando o componente é desmontado, a conexão WebSocket é encerrada graciosamente, prevenindo vazamentos de memória (*memory leaks*) e conexões "zumbis".
 
-### 3. UX Resiliente em Redes IoT
-Em sistemas de Internet das Coisas, comandos enviados pela rede possuem latência física e dependem do ciclo de resposta do microcontrolador:
-- Ao tocar no `Switch`, o aplicativo exibe um **`ActivityIndicator`** e desabilita temporariamente novos toques (`disabled={status !== 'connected' || showIndicator}`).
-- Um temporizador de segurança (`setTimeout` de **7 segundos** gerenciado via `useEffect`) garante que a interface nunca fique travada permanentemente e evita que o usuário dispare múltiplos comandos conflitantes antes que o ESP32 confirme a mudança de estado no ciclo de telemetria.
+### 3. UX Resiliente e Renderização Defensiva em Redes IoT
+Em sistemas de Internet das Coisas, comandos enviados pela rede possuem latência física e os pacotes podem variar durante evoluções de firmware:
+- **Rolagem Adaptável e Renderização Defensiva (`ScrollView` + `data?.qnh !== undefined`)**: Com a adição de múltiplos cards (QNH em `hPa`/`inHg`, Temperatura, Umidade e controle do LED), o layout em [`App.tsx`](./App.tsx) utiliza `ScrollView` para garantir acessibilidade em telas menores e valida explicitamente `data?.qnh !== undefined` antes de invocar `.toFixed(1)`, evitando erros de execução caso um pacote chegue sem o campo barométrico.
+- **Bloqueio de Concorrência no Acionamento**: Ao tocar no `Switch`, o aplicativo exibe um **`ActivityIndicator`** e desabilita temporariamente novos toques (`disabled={status !== 'connected' || showIndicator}`).
+- **Fallback de Segurança**: Um temporizador (`setTimeout` de **7 segundos** gerenciado via `useEffect`) garante que a interface nunca fique travada permanentemente e evita que o usuário dispare múltiplos comandos conflitantes antes que o ESP32 confirme a mudança de estado no ciclo de telemetria.
 
 ---
 
@@ -145,9 +157,10 @@ Em sistemas de Internet das Coisas, comandos enviados pela rede possuem latênci
 
 ### Passo 1: Rodar a Simulação do ESP32 no Wokwi
 1. Acesse o simulador [Wokwi](https://wokwi.com/) (ou utilize a extensão **Wokwi Simulator** no VS Code).
-2. Carregue o código do arquivo `wokiwi_example/sketch.ino` e a montagem do `wokiwi_example/diagram.json` (certifique-se de incluir as bibliotecas `PubSubClient` e `DHT sensor library`).
+2. Carregue o código do arquivo `wokiwi_example/sketch.ino` e a montagem do `wokiwi_example/diagram.json` (certifique-se de incluir as bibliotecas **`PubSubClient`**, **`DHT sensor library`** e **`Adafruit BMP085 Library`**).
 3. Verifique se o identificador único nos tópicos do `sketch.ino` corresponde ao `DEVICE_ID` configurado em `src/config.ts` (por padrão, `thibastos`).
 4. Inicie a simulação clicando em **Start the simulation**. Você verá no Monitor Serial a conexão ao Wi-Fi `Wokwi-GUEST`, ao broker MQTT e o envio do JSON a cada 3 segundos.
+5. **Dica de Interação**: Durante a simulação no Wokwi, clique diretamente sobre o componente **BMP180** (ou **DHT22**) para abrir o controle deslizante e variar a pressão atmosférica, temperatura e umidade em tempo real!
 
 ### Passo 2: Iniciar o Aplicativo React Native (Expo)
 No terminal, dentro da pasta `app-iot`, instale as dependências e inicie o servidor do Expo:

@@ -5,6 +5,7 @@ import { MQTT_CONFIG } from '../config';
 export type SensorData = {
   temperature: number;
   humidity: number;
+  qnh: number;
   led: boolean;
 };
 

@@ -1,6 +1,8 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <DHT.h>
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
 
 // ---------- CONFIGURAÇÃO ----------
 const char* WIFI_SSID = "Wokwi-GUEST";   // rede virtual do Wokwi
@@ -17,6 +19,7 @@ const char* TOPIC_LED_SET = "iotdemo/thibastos/led/set";
 #define LED_PIN  26
 
 DHT dht(DHT_PIN, DHT_TYPE);
+Adafruit_BMP085 bmp;
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 
@@ -62,6 +65,11 @@ void setup() {
   Serial.begin(115200);
   pinMode(LED_PIN, OUTPUT);
   dht.begin();
+
+  if (!bmp.begin()) {
+    Serial.println("Falha ao inicializar o sensor BMP180!");
+  }
+
   connectWifi();
   mqtt.setServer(MQTT_HOST, MQTT_PORT);
   mqtt.setCallback(onMessage);
@@ -81,10 +89,13 @@ void loop() {
       return;
     }
 
-    char json[100];
+  // readPressure() retorna em Pascal (Pa); divide por 100 para hPa (QNH)
+    float qnh = bmp.readPressure() / 100.0;
+
+    char json[120];
     snprintf(json, sizeof(json),
-             "{\"temperature\":%.1f,\"humidity\":%.1f,\"led\":%s}",
-             t, h, ledOn ? "true" : "false");
+             "{\"temperature\":%.1f,\"humidity\":%.1f,\"qnh\":%.1f,\"led\":%s}",
+             t, h, qnh, ledOn ? "true" : "false");
 
     mqtt.publish(TOPIC_SENSOR, json);
     Serial.println(json);

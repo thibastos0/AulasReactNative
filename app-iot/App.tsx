@@ -1,5 +1,6 @@
 import { 
   ActivityIndicator,
+  ScrollView,
   StyleSheet, 
   Switch, 
   Text, 
@@ -37,48 +38,63 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <Text style={styles.title}>Painel IoT</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-      <View style={styles.statusRow}>
-        <View style={[styles.dot, { backgroundColor: STATUS_COLOR[status] }]} />
-        <Text style={styles.statusText}>{STATUS_LABEL[status]}</Text>
-      </View>
+        <Text style={styles.title}>Painel IoT</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Temperatura</Text>
-        <Text style={styles.value}>
-          {data ? `${data.temperature.toFixed(1)} °C` : '--'}
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>Umidade</Text>
-        <Text style={styles.value}>
-          {data ? `${data.humidity.toFixed(1)} %` : '--'}
-        </Text>
-      </View>
-
-      <View style={[styles.card, styles.row]}>
-        <View>
-          <Text style={styles.label}>LED do ESP32</Text>
-          <Text style={styles.small}>{data?.led ? 'Ligado' : 'Desligado'}</Text>
+        <View style={styles.statusRow}>
+          <View style={[styles.dot, { backgroundColor: STATUS_COLOR[status] }]} />
+          <Text style={styles.statusText}>{STATUS_LABEL[status]}</Text>
         </View>
-        {showIndicator && <ActivityIndicator size="large" color="#3b82f6" />}
-        <Switch
-          value={data?.led ?? false}
-          onValueChange={(value) => {
-            setLed(value);
-            setShowIndicator(true);
-          }}
-          disabled={status !== 'connected' || showIndicator}
-        />
-      </View>
 
-      <Text style={styles.footer}>
-        {lastUpdate
-          ? `Última atualização: ${lastUpdate.toLocaleTimeString()}`
-          : 'Aguardando dados do sensor...'}
-      </Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>QNH (Ajuste de Altímetro)</Text>
+          <Text style={styles.value}>
+            {data?.qnh !== undefined ? `${data.qnh.toFixed(1)} hPa` : '--'}
+          </Text>
+          {data?.qnh !== undefined && (
+            <Text style={styles.subValue}>
+              {(data.qnh * 0.02953).toFixed(2)} inHg
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>Temperatura</Text>
+          <Text style={styles.value}>
+            {data ? `${data.temperature.toFixed(1)} °C` : '--'}
+          </Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.label}>Umidade</Text>
+          <Text style={styles.value}>
+            {data ? `${data.humidity.toFixed(1)} %` : '--'}
+          </Text>
+        </View>
+
+        <View style={[styles.card, styles.row]}>
+          <View>
+            <Text style={styles.label}>LED do ESP32</Text>
+            <Text style={styles.small}>{data?.led ? 'Ligado' : 'Desligado'}</Text>
+          </View>
+          {showIndicator && <ActivityIndicator size="large" color="#3b82f6" />}
+          <Switch
+            value={data?.led ?? false}
+            onValueChange={(value) => {
+              setLed(value);
+              setShowIndicator(true);
+            }}
+            disabled={status !== 'connected' || showIndicator}
+          />
+        </View>
+
+        <Text style={styles.footer}>
+          {lastUpdate
+            ? `Última atualização: ${lastUpdate.toLocaleTimeString()}`
+            : 'Aguardando dados do sensor...'}
+        </Text>
+        </ScrollView>
     </SafeAreaView>
   );
 }
@@ -90,6 +106,12 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 20,
     paddingTop: 60 
+  },
+  scrollContent: { 
+    flexGrow: 1, 
+    justifyContent: 'flex-start',
+    padding: 20,
+    paddingBottom: 32
   },
   title: { 
     fontSize: 28, 
@@ -134,6 +156,12 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     fontWeight: '700', 
     marginTop: 4 
+  },
+  subValue: { 
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500', 
+    marginTop: 2 
   },
   small: { 
     fontSize: 18,
