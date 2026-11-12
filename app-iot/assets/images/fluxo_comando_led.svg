@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 430" width="100%" height="100%" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#22c55e"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="840" height="430" rx="16" fill="#0f172a"/>
+  <text x="420" y="32" fill="#f8fafc" font-size="17" font-weight="700" text-anchor="middle">Diagrama de Sequência: Ciclo de Confirmação do LED (Round-Trip)</text>
+
+  <!-- Lifelines Headers -->
+  <g transform="translate(80, 52)">
+    <rect width="160" height="44" rx="8" fill="#1e293b" stroke="#06b6d4" stroke-width="2"/>
+    <text x="80" y="20" fill="#67e8f9" font-size="13" font-weight="700" text-anchor="middle">App React Native</text>
+    <text x="80" y="36" fill="#94a3b8" font-size="10" text-anchor="middle">App.tsx / useMqtt.ts</text>
+  </g>
+  <g transform="translate(340, 52)">
+    <rect width="160" height="44" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="2"/>
+    <text x="80" y="20" fill="#d8b4fe" font-size="13" font-weight="700" text-anchor="middle">HiveMQ Broker</text>
+    <text x="80" y="36" fill="#94a3b8" font-size="10" text-anchor="middle">broker.hivemq.com</text>
+  </g>
+  <g transform="translate(600, 52)">
+    <rect width="160" height="44" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <text x="80" y="20" fill="#93c5fd" font-size="13" font-weight="700" text-anchor="middle">ESP32 (Wokwi)</text>
+    <text x="80" y="36" fill="#94a3b8" font-size="10" text-anchor="middle">sketch.ino (GPIO 26)</text>
+  </g>
+
+  <!-- Vertical Lifelines -->
+  <line x1="160" y1="96" x2="160" y2="395" stroke="#334155" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="420" y1="96" x2="420" y2="395" stroke="#334155" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="680" y1="96" x2="680" y2="395" stroke="#334155" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Step 1: User Toggles Switch & App Publishes ON -->
+  <rect x="24" y="112" width="128" height="48" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+  <text x="88" y="128" fill="#e0f2fe" font-size="10" font-weight="600" text-anchor="middle">1. Toque no Switch</text>
+  <text x="88" y="142" fill="#7dd3fc" font-size="9.5" text-anchor="middle">Bloqueia Switch +</text>
+  <text x="88" y="154" fill="#7dd3fc" font-size="9.5" text-anchor="middle">ActivityIndicator (7s)</text>
+
+  <line x1="164" y1="138" x2="412" y2="138" stroke="#f59e0b" stroke-width="2.2" marker-end="url(#arrAmber)"/>
+  <text x="288" y="129" fill="#fcd34d" font-size="10.5" font-weight="600" text-anchor="middle">PUB "ON" (WSS :8884)</text>
+  <text x="288" y="152" fill="#94a3b8" font-size="9.5" font-family="monospace" text-anchor="middle">iotdemo/thibastos/led/set</text>
+
+  <!-- Step 2: Broker Routes to ESP32 -->
+  <line x1="424" y1="175" x2="672" y2="175" stroke="#f59e0b" stroke-width="2.2" marker-end="url(#arrAmber)"/>
+  <text x="548" y="166" fill="#fcd34d" font-size="10.5" font-weight="600" text-anchor="middle">2. Roteia "ON" (TCP :1883)</text>
+  <text x="548" y="189" fill="#94a3b8" font-size="9.5" text-anchor="middle">Entrega imediata ao assinante</text>
+
+  <!-- Step 3: ESP32 Processes Command -->
+  <rect x="690" y="195" width="130" height="52" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="755" y="212" fill="#fef3c7" font-size="10" font-weight="600" text-anchor="middle">3. Callback onMessage()</text>
+  <text x="755" y="226" fill="#fcd34d" font-size="9.5" font-family="monospace" text-anchor="middle">ledOn = true;</text>
+  <text x="755" y="239" fill="#fcd34d" font-size="9.5" font-family="monospace" text-anchor="middle">GPIO 26 ➔ HIGH</text>
+
+  <!-- Step 4: Telemetry Cycle (Every 3s) ESP32 -> Broker -->
+  <line x1="676" y1="280" x2="428" y2="280" stroke="#22c55e" stroke-width="2.2" marker-end="url(#arrGreen)"/>
+  <text x="548" y="270" fill="#86efac" font-size="10.5" font-weight="600" text-anchor="middle">4. Ciclo de 3s: PUB Telemetria</text>
+  <text x="548" y="294" fill="#e2e8f0" font-size="9.5" font-family="monospace" text-anchor="middle">{"temp":24.0,"hum":55.0,"led":true}</text>
+
+  <!-- Step 5: Broker Delivers Telemetry to App -->
+  <line x1="416" y1="322" x2="168" y2="322" stroke="#22c55e" stroke-width="2.2" marker-end="url(#arrGreen)"/>
+  <text x="288" y="312" fill="#86efac" font-size="10.5" font-weight="600" text-anchor="middle">SUB iotdemo/thibastos/sensor</text>
+  <text x="288" y="336" fill="#94a3b8" font-size="9.5" text-anchor="middle">onMessageArrived(payload)</text>
+
+  <!-- Step 6: App Updates UI State -->
+  <rect x="24" y="332" width="128" height="50" rx="6" fill="#1e293b" stroke="#22c55e" stroke-width="1.2"/>
+  <text x="88" y="348" fill="#dcfce7" font-size="10" font-weight="600" text-anchor="middle">5. setData(parsed)</text>
+  <text x="88" y="362" fill="#86efac" font-size="9.5" text-anchor="middle">Status: "Ligado"</text>
+  <text x="88" y="375" fill="#86efac" font-size="9.5" text-anchor="middle">Switch sincronizado</text>
+
+  <!-- Legend Footer -->
+  <g transform="translate(215, 414)" font-size="11" fill="#cbd5e1">
+    <circle cx="0" cy="-4" r="5" fill="#f59e0b"/>
+    <text x="10" y="0">Ida: Comando de Acionamento ("ON" / "OFF")</text>
+    <circle cx="255" cy="-4" r="5" fill="#22c55e"/>
+    <text x="265" y="0">Volta: Confirmação via Telemetria JSON</text>
+  </g>
+</svg>

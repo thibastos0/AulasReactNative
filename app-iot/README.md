@@ -4,7 +4,9 @@
 
 ## 🟢 1. Visão Geral do Projeto
 
-Este projeto apresenta uma solução completa e didática de **Internet das Coisas (IoT)** que integra um microcontrolador **ESP32** (simulado no **Wokwi**) a um aplicativo móvel desenvolvido em **React Native (Expo)** utilizando o protocolo de mensageria **MQTT**.
+Este é um **projeto didático desenvolvido para as aulas de Desenvolvimento Mobile com React Native integrado a IoT**, demonstrando na prática como construir interfaces móveis reativas que se comunicam bidirecionalmente com dispositivos físicos ou simulados.
+
+A solução integra um microcontrolador **ESP32** (simulado no **Wokwi**) a um aplicativo móvel desenvolvido em **React Native (Expo)** utilizando o protocolo de mensageria **MQTT**.
 
 Com esta aplicação, você é capaz de:
 - **Monitorar em tempo real** a temperatura (`°C`) e a umidade relativa do ar (`%`) lidas pelo sensor **DHT22** conectado ao ESP32.
@@ -61,6 +63,24 @@ A comunicação entre o hardware e o aplicativo móvel utiliza o padrão **Publi
    - Ao acionar o componente `Switch` na tela do aplicativo (`App.tsx`), a função `setLed(value)` envia uma mensagem contendo `"ON"` ou `"OFF"` para o tópico `iotdemo/thibastos/led/set`.
    - O ESP32, que mantém uma assinatura ativa (`mqtt.subscribe`) nesse tópico de comando, dispara imediatamente a função de callback `onMessage`, alterando o nível lógico do **GPIO 26** (`HIGH` ou `LOW`) para acender ou apagar o LED.
 
+### 🔄 Ciclo de Confirmação do LED (Round-Trip)
+
+Diferente de um botão local comum, o `Switch` do aplicativo não muda de estado definitivo apenas pelo toque do usuário: ele aguarda a **confirmação real vinda do hardware** (ciclo de ida e volta / *round-trip*), conforme ilustrado no diagrama de sequência abaixo:
+
+![Diagrama de Sequência do Acionamento do LED](./assets/images/fluxo_comando_led.svg)
+
+1. **Acionamento no App (`App.tsx`)**: O usuário toca no `Switch` ➔ O app publica `"ON"` (ou `"OFF"`) em `iotdemo/thibastos/led/set`, bloqueia temporariamente o `Switch` e exibe um `ActivityIndicator` (com *timeout* de segurança de 7 segundos).
+2. **Roteamento no HiveMQ Broker**: O broker recebe o pacote via WebSocket e o encaminha instantaneamente via TCP para o ESP32.
+3. **Execução no ESP32 (`sketch.ino`)**: O callback `onMessage()` captura o comando, coloca o pino `GPIO 26` em nível `HIGH` (ou `LOW`) e atualiza a variável de estado `ledOn = true`.
+4. **Confirmação via Telemetria**: No próximo ciclo de leitura (a cada 3s), o ESP32 publica o JSON atualizado `{"temperature": ..., "humidity": ..., "led": true}` em `iotdemo/thibastos/sensor` ➔ O HiveMQ entrega ao App ➔ A interface atualiza o status visual para `"Ligado"` com o estado real confirmado pelo microcontrolador.
+
+### 🔌 Por que usamos Portas Diferentes? (`1883` TCP vs. `8884` WSS)
+
+| Dispositivo | Protocolo de Transporte | Porta | Motivo Técnico |
+| :--- | :---: | :---: | :--- |
+| **ESP32 (Wokwi)** | **MQTT sobre TCP puro** | `1883` | Microcontroladores em C/C++ (`WiFiClient` + `PubSubClient`) possuem acesso direto à pilha de sockets TCP nativos do sistema embarcado, permitindo conexões leves e com baixíssimo consumo de memória RAM. |
+| **App React Native (Expo)** | **MQTT sobre WebSockets Seguro (WSS)** | `8884` | O runtime JavaScript mobile (**Hermes** no React Native) e os navegadores web não expõem sockets TCP brutos por questões de segurança e arquitetura. Por isso, a biblioteca `paho-mqtt` encapsula os pacotes MQTT dentro de uma conexão **WebSocket com criptografia TLS/SSL (`wss://`)** na porta `8884` (caminho `/mqtt`). |
+
 ---
 
 ## 🧠 4. Entendendo os Conceitos: HiveMQ & `useMqtt` (Analogia com Firebase)
@@ -78,9 +98,50 @@ O hook personalizado `src/hooks/useMqtt.ts` age exatamente como um **listener em
 - Sempre que uma nova mensagem chega do HiveMQ, o callback `client.onMessageArrived` é disparado automaticamente.
 - Ele converte o texto JSON recebido e atualiza os estados do React (`setData`, `setLastUpdate`, `setStatus`), forçando a **re-renderização automática** dos cards de Temperatura, Umidade e estado do LED em `App.tsx`.
 
+### 🗂️ O que é um Broker MQTT e como funcionam os Tópicos?
+
+No protocolo **MQTT**, os dispositivos não precisam conhecer o endereço IP uns dos outros. Toda a comunicação passa pelo **Broker**, que atua como uma central de correios inteligente baseada no modelo **Publish/Subscribe (Publicar/Assinar)**:
+- **Publisher (Publicador)**: Quem envia a mensagem para um tópico (ex.: o ESP32 publicando a leitura do DHT22).
+- **Subscriber (Assinante)**: Quem registra interesse em receber mensagens de um tópico (ex.: o app React Native escutando as atualizações do sensor).
+
+Os **Tópicos MQTT** são endereços organizados em uma **estrutura hierárquica separada por barras (`/`)**, semelhante a pastas de arquivos ou rotas de uma URL:
+
+```text
+iotdemo / thibastos / sensor
+└──┬──┘   └───┬───┘   └──┬─┘
+Projeto   DEVICE_ID    Recurso/Canal (sensor ou led/set)
+```
+
+> ⚠️ **Importante — Evitando Colisão de Dados em Sala de Aula (`DEVICE_ID`)**:  
+> Como o `broker.hivemq.com` é um servidor **público e compartilhado mundialmente**, se dois alunos utilizarem exatamente o mesmo tópico ao mesmo tempo, um aplicativo receberá os dados do ESP32 do colega (colisão de tópicos). Para isolar o seu experimento, altere o identificador `DEVICE_ID` (ex.: `thibastos` para o seu nome ou matrícula) simultaneamente nos dois arquivos:
+> - No aplicativo mobile: [`src/config.ts`](./src/config.ts) (`const DEVICE_ID = 'seu_id_unico';`)
+> - No firmware do ESP32: [`wokiwi_example/sketch.ino`](./wokiwi_example/sketch.ino) (`TOPIC_SENSOR` e `TOPIC_LED_SET`)
+
 ---
 
-## 🚀 5. Como Executar o Projeto
+## 📱 5. Conceitos de Programação Mobile Aplicados
+
+O código do aplicativo foi estruturado seguindo boas práticas modernas de engenharia de software para **React Native com TypeScript**:
+
+### 1. Separação de Responsabilidades (*Separation of Concerns — SoC*)
+O projeto divide claramente o papel de cada arquivo para facilitar a manutenção e o reaproveitamento:
+- **Configuração ([`src/config.ts`](./src/config.ts))**: Centraliza constantes de infraestrutura (`host`, `port`, `path`, `DEVICE_ID` e nomes dos tópicos), evitando valores fixos (*magic strings*) espalhados pelo código.
+- **Camada de Rede e Estado ([`src/hooks/useMqtt.ts`](./src/hooks/useMqtt.ts))**: Encapsula toda a complexidade do protocolo MQTT (`paho-mqtt`) dentro de um *Custom Hook*, expondo uma interface limpa e fortemente tipada em TypeScript (`SensorData` e `ConnectionStatus`).
+- **Camada Visual ([`App.tsx`](./App.tsx))**: Foca exclusivamente na apresentação visual (JSX e `StyleSheet`) e na interação com o usuário, consumindo apenas `{ status, data, lastUpdate, setLed }` fornecidos pelo hook.
+
+### 2. Ciclo de Vida e Prevenção de *Memory Leaks*
+Conexões em tempo real exigem controle rigoroso do ciclo de vida dos componentes no React Native:
+- **Persistência com `useRef`**: A instância do cliente MQTT (`clientRef`) é armazenada em um `useRef` em vez de um `useState`. Isso garante que o objeto de conexão persista entre renderizações sem disparar ciclos de re-renderização desnecessários na árvore de componentes.
+- **Limpeza (*Cleanup*) no `useEffect`**: O `useEffect` que inicializa a conexão retorna uma função de limpeza (`return () => { if (client.isConnected()) client.disconnect(); }`). Quando o componente é desmontado, a conexão WebSocket é encerrada graciosamente, prevenindo vazamentos de memória (*memory leaks*) e conexões "zumbis".
+
+### 3. UX Resiliente em Redes IoT
+Em sistemas de Internet das Coisas, comandos enviados pela rede possuem latência física e dependem do ciclo de resposta do microcontrolador:
+- Ao tocar no `Switch`, o aplicativo exibe um **`ActivityIndicator`** e desabilita temporariamente novos toques (`disabled={status !== 'connected' || showIndicator}`).
+- Um temporizador de segurança (`setTimeout` de **7 segundos** gerenciado via `useEffect`) garante que a interface nunca fique travada permanentemente e evita que o usuário dispare múltiplos comandos conflitantes antes que o ESP32 confirme a mudança de estado no ciclo de telemetria.
+
+---
+
+## 🚀 6. Como Executar o Projeto
 
 ### Passo 1: Rodar a Simulação do ESP32 no Wokwi
 1. Acesse o simulador [Wokwi](https://wokwi.com/) (ou utilize a extensão **Wokwi Simulator** no VS Code).
