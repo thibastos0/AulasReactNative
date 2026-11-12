@@ -1,96 +1,145 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="100%" height="100%" font-family="system-ui, -apple-system, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 470" width="100%" height="100%" font-family="system-ui, -apple-system, sans-serif">
   <!-- Background -->
-  <rect width="760" height="400" rx="16" fill="#0f172a"/>
-  <text x="380" y="34" fill="#f8fafc" font-size="18" font-weight="700" text-anchor="middle">Esquema de Ligação no Wokwi (ESP32 + DHT22 + LED)</text>
+  <rect width="800" height="470" rx="16" fill="#0f172a"/>
+  <text x="400" y="34" fill="#f8fafc" font-size="18" font-weight="700" text-anchor="middle">Esquema de Ligação no Wokwi (ESP32 + DHT22 + BMP180 + LED)</text>
 
   <!-- LED + Resistor (Left) -->
-  <g transform="translate(50, 95)">
-    <rect width="170" height="220" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
-    <text x="85" y="28" fill="#f8fafc" font-size="14" font-weight="700" text-anchor="middle">Atuador Visual</text>
+  <g transform="translate(40, 105)">
+    <rect width="175" height="230" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <text x="87" y="28" fill="#f8fafc" font-size="14" font-weight="700" text-anchor="middle">Atuador Visual</text>
     <!-- Red LED icon -->
-    <circle cx="85" cy="72" r="20" fill="#ef4444" stroke="#fca5a5" stroke-width="3"/>
-    <circle cx="78" cy="65" r="5" fill="#fecaca" opacity="0.7"/>
-    <text x="85" y="108" fill="#fca5a5" font-size="12" font-weight="600" text-anchor="middle">LED Vermelho</text>
+    <circle cx="87" cy="72" r="20" fill="#ef4444" stroke="#fca5a5" stroke-width="3"/>
+    <circle cx="80" cy="65" r="5" fill="#fecaca" opacity="0.7"/>
+    <text x="87" y="108" fill="#fca5a5" font-size="12" font-weight="600" text-anchor="middle">LED Vermelho</text>
 
-    <!-- Pins C and A -->
-    <rect x="115" y="125" width="45" height="22" rx="4" fill="#0f172a" stroke="#64748b"/>
-    <text x="137" y="140" fill="#cbd5e1" font-size="11" text-anchor="middle">C (GND)</text>
+    <!-- Pin C -->
+    <rect x="115" y="125" width="48" height="22" rx="4" fill="#0f172a" stroke="#64748b"/>
+    <text x="139" y="140" fill="#cbd5e1" font-size="11" text-anchor="middle">C (GND)</text>
 
     <!-- Resistor -->
-    <rect x="25" y="168" width="90" height="26" rx="5" fill="#d97706" stroke="#fbbf24" stroke-width="1.5"/>
-    <text x="70" y="185" fill="#fffbeb" font-size="11" font-weight="700" text-anchor="middle">Resistor 220Ω</text>
-    <line x1="85" y1="115" x2="85" y2="168" stroke="#f97316" stroke-width="2.5" stroke-dasharray="3,2"/>
-    <text x="68" y="142" fill="#fdba74" font-size="10" text-anchor="end">Ânodo (A)</text>
+    <rect x="25" y="172" width="95" height="26" rx="5" fill="#d97706" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="72" y="189" fill="#fffbeb" font-size="11" font-weight="700" text-anchor="middle">Resistor 220Ω</text>
+    <line x1="87" y1="115" x2="87" y2="172" stroke="#f97316" stroke-width="2.5" stroke-dasharray="3,2"/>
+    <text x="72" y="144" fill="#fdba74" font-size="10" text-anchor="end">Ânodo (A)</text>
   </g>
 
   <!-- ESP32 DevKit v4 (Center) -->
-  <g transform="translate(290, 75)">
-    <rect width="180" height="265" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
-    <rect x="35" y="16" width="110" height="65" rx="6" fill="#334155" stroke="#94a3b8"/>
-    <text x="90" y="45" fill="#f8fafc" font-size="13" font-weight="700" text-anchor="middle">ESP32</text>
-    <text x="90" y="63" fill="#93c5fd" font-size="10" text-anchor="middle">DevKit C v4 (Wi-Fi)</text>
+  <g transform="translate(300, 65)">
+    <rect width="195" height="335" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+    <rect x="42" y="16" width="110" height="62" rx="6" fill="#334155" stroke="#94a3b8"/>
+    <text x="97" y="43" fill="#f8fafc" font-size="14" font-weight="700" text-anchor="middle">ESP32</text>
+    <text x="97" y="61" fill="#93c5fd" font-size="10.5" text-anchor="middle">DevKit C v4 (Wi-Fi)</text>
 
     <!-- Left Pins -->
-    <circle cx="14" cy="155" r="5" fill="#94a3b8"/>
-    <text x="26" y="159" fill="#e2e8f0" font-size="12" font-weight="600">GND.1</text>
+    <circle cx="14" cy="175" r="5" fill="#94a3b8"/>
+    <text x="26" y="179" fill="#e2e8f0" font-size="12" font-weight="600">GND.1</text>
 
-    <circle cx="14" cy="205" r="5" fill="#f97316"/>
-    <text x="26" y="209" fill="#fdba74" font-size="12" font-weight="600">GPIO 26</text>
+    <circle cx="14" cy="220" r="5" fill="#f97316"/>
+    <text x="26" y="224" fill="#fdba74" font-size="12" font-weight="600">GPIO 26</text>
 
-    <!-- Right Pins -->
-    <circle cx="166" cy="120" r="5" fill="#ef4444"/>
-    <text x="154" y="124" fill="#fca5a5" font-size="12" font-weight="600" text-anchor="end">3V3</text>
+    <!-- Right Pins (DHT22 & Shared 3V3) -->
+    <circle cx="181" cy="105" r="5" fill="#ef4444"/>
+    <text x="169" y="109" fill="#fca5a5" font-size="12" font-weight="600" text-anchor="end">3V3</text>
 
-    <circle cx="166" cy="165" r="5" fill="#22c55e"/>
-    <text x="154" y="169" fill="#86efac" font-size="12" font-weight="600" text-anchor="end">GPIO 4</text>
+    <circle cx="181" cy="140" r="5" fill="#22c55e"/>
+    <text x="169" y="144" fill="#86efac" font-size="12" font-weight="600" text-anchor="end">GPIO 4</text>
 
-    <circle cx="166" cy="210" r="5" fill="#94a3b8"/>
-    <text x="154" y="214" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="end">GND.2</text>
+    <circle cx="181" cy="175" r="5" fill="#94a3b8"/>
+    <text x="169" y="179" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="end">GND.2</text>
+
+    <!-- Right Pins (BMP180 I2C) -->
+    <circle cx="181" cy="235" r="5" fill="#94a3b8"/>
+    <text x="169" y="239" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="end">GND.3</text>
+
+    <circle cx="181" cy="270" r="5" fill="#38bdf8"/>
+    <text x="169" y="274" fill="#7dd3fc" font-size="12" font-weight="600" text-anchor="end">GPIO 21 (SDA)</text>
+
+    <circle cx="181" cy="305" r="5" fill="#facc15"/>
+    <text x="169" y="309" fill="#fef08a" font-size="12" font-weight="600" text-anchor="end">GPIO 22 (SCL)</text>
 
     <!-- USB Port -->
-    <rect x="65" y="250" width="50" height="15" rx="2" fill="#64748b"/>
+    <rect x="72" y="320" width="50" height="15" rx="2" fill="#64748b"/>
   </g>
 
-  <!-- Sensor DHT22 (Right) -->
-  <g transform="translate(540, 95)">
-    <rect width="170" height="220" rx="12" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
-    <text x="85" y="28" fill="#f8fafc" font-size="14" font-weight="700" text-anchor="middle">Sensor DHT22</text>
-    <rect x="55" y="42" width="60" height="45" rx="6" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5"/>
-    <line x1="65" y1="54" x2="105" y2="54" stroke="#0891b2" stroke-width="2"/>
-    <line x1="65" y1="64" x2="105" y2="64" stroke="#0891b2" stroke-width="2"/>
-    <line x1="65" y1="74" x2="105" y2="74" stroke="#0891b2" stroke-width="2"/>
-    <text x="85" y="104" fill="#67e8f9" font-size="11" text-anchor="middle">Temp. &amp; Umidade</text>
+  <!-- Sensor DHT22 (Top Right) -->
+  <g transform="translate(575, 55)">
+    <rect width="185" height="170" rx="12" fill="#1e293b" stroke="#06b6d4" stroke-width="1.5"/>
+    <text x="92" y="24" fill="#f8fafc" font-size="13.5" font-weight="700" text-anchor="middle">Sensor DHT22</text>
+    <text x="92" y="40" fill="#67e8f9" font-size="10.5" text-anchor="middle">Temp. (°C) &amp; Umidade (%)</text>
+
+    <rect x="115" y="58" width="52" height="90" rx="6" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5"/>
+    <line x1="125" y1="76" x2="157" y2="76" stroke="#0891b2" stroke-width="2"/>
+    <line x1="125" y1="92" x2="157" y2="92" stroke="#0891b2" stroke-width="2"/>
+    <line x1="125" y1="108" x2="157" y2="108" stroke="#0891b2" stroke-width="2"/>
+    <line x1="125" y1="124" x2="157" y2="124" stroke="#0891b2" stroke-width="2"/>
 
     <!-- DHT Pins -->
-    <rect x="12" y="114" width="60" height="22" rx="4" fill="#0f172a" stroke="#ef4444"/>
-    <text x="42" y="129" fill="#fca5a5" font-size="11" font-weight="600" text-anchor="middle">VCC</text>
+    <rect x="14" y="60" width="62" height="22" rx="4" fill="#0f172a" stroke="#ef4444"/>
+    <text x="45" y="75" fill="#fca5a5" font-size="11" font-weight="600" text-anchor="middle">VCC</text>
 
-    <rect x="12" y="159" width="60" height="22" rx="4" fill="#0f172a" stroke="#22c55e"/>
-    <text x="42" y="174" fill="#86efac" font-size="11" font-weight="600" text-anchor="middle">SDA</text>
+    <rect x="14" y="95" width="62" height="22" rx="4" fill="#0f172a" stroke="#22c55e"/>
+    <text x="45" y="110" fill="#86efac" font-size="11" font-weight="600" text-anchor="middle">SDA</text>
 
-    <rect x="12" y="204" width="60" height="22" rx="4" fill="#0f172a" stroke="#64748b" transform="translate(0, -15)"/>
-    <text x="42" y="204" fill="#cbd5e1" font-size="11" font-weight="600" text-anchor="middle">GND</text>
+    <rect x="14" y="130" width="62" height="22" rx="4" fill="#0f172a" stroke="#64748b"/>
+    <text x="45" y="145" fill="#cbd5e1" font-size="11" font-weight="600" text-anchor="middle">GND</text>
+  </g>
+
+  <!-- Sensor BMP180 (Bottom Right) -->
+  <g transform="translate(575, 240)">
+    <rect width="185" height="175" rx="12" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/>
+    <text x="92" y="24" fill="#f8fafc" font-size="13.5" font-weight="700" text-anchor="middle">Sensor BMP180 (I2C)</text>
+    <text x="92" y="40" fill="#d8b4fe" font-size="10.5" text-anchor="middle">Pressão / QNH (hPa / inHg)</text>
+
+    <!-- Barometer chip icon -->
+    <rect x="115" y="62" width="52" height="92" rx="6" fill="#3b0764" stroke="#c084fc" stroke-width="1.5"/>
+    <rect x="128" y="88" width="26" height="26" rx="4" fill="#9333ea" stroke="#e9d5ff"/>
+    <circle cx="141" cy="101" r="4" fill="#f8fafc"/>
+    <text x="141" y="138" fill="#e9d5ff" font-size="9.5" font-weight="600" text-anchor="middle">BMP180</text>
+
+    <!-- BMP180 Pins -->
+    <rect x="14" y="52" width="62" height="20" rx="4" fill="#0f172a" stroke="#ef4444"/>
+    <text x="45" y="66" fill="#fca5a5" font-size="10.5" font-weight="600" text-anchor="middle">VCC</text>
+
+    <rect x="14" y="82" width="62" height="20" rx="4" fill="#0f172a" stroke="#64748b"/>
+    <text x="45" y="96" fill="#cbd5e1" font-size="10.5" font-weight="600" text-anchor="middle">GND</text>
+
+    <rect x="14" y="112" width="62" height="20" rx="4" fill="#0f172a" stroke="#38bdf8"/>
+    <text x="45" y="126" fill="#7dd3fc" font-size="10.5" font-weight="600" text-anchor="middle">SDA</text>
+
+    <rect x="14" y="142" width="62" height="20" rx="4" fill="#0f172a" stroke="#facc15"/>
+    <text x="45" y="156" fill="#fef08a" font-size="10.5" font-weight="600" text-anchor="middle">SCL</text>
   </g>
 
   <!-- Wires: Left (LED/Resistor to ESP32) -->
-  <!-- C -> GND.1 (Black/Gray) -->
-  <path d="M 210 231 L 304 230" stroke="#94a3b8" stroke-width="3" fill="none"/>
-  <!-- R1 -> GPIO 26 (Orange) -->
-  <path d="M 165 276 L 304 280" stroke="#f97316" stroke-width="3" fill="none"/>
+  <path d="M 203 241 L 314 240" stroke="#94a3b8" stroke-width="3" fill="none"/>
+  <path d="M 160 290 L 314 285" stroke="#f97316" stroke-width="3" fill="none"/>
 
-  <!-- Wires: Right (ESP32 to DHT22) -->
-  <!-- 3V3 -> VCC (Red) -->
-  <path d="M 456 195 L 552 220" stroke="#ef4444" stroke-width="3" fill="none"/>
-  <!-- GPIO 4 -> SDA (Green) -->
-  <path d="M 456 240 L 552 265" stroke="#22c55e" stroke-width="3" fill="none"/>
-  <!-- GND.2 -> GND (Black/Gray) -->
-  <path d="M 456 285 L 552 295" stroke="#94a3b8" stroke-width="3" fill="none"/>
+  <!-- Wires: Top Right (ESP32 to DHT22) -->
+  <!-- 3V3 -> DHT VCC (Red) -->
+  <path d="M 481 170 L 535 170 L 535 126 L 589 126" stroke="#ef4444" stroke-width="2.8" fill="none"/>
+  <!-- GPIO 4 -> DHT SDA (Green) -->
+  <path d="M 481 205 L 550 205 L 550 161 L 589 161" stroke="#22c55e" stroke-width="2.8" fill="none"/>
+  <!-- GND.2 -> DHT GND (Black/Gray) -->
+  <path d="M 481 240 L 562 240 L 562 196 L 589 196" stroke="#94a3b8" stroke-width="2.8" fill="none"/>
+
+  <!-- Wires: Bottom Right (ESP32 to BMP180) -->
+  <!-- 3V3 -> BMP180 VCC (Red branch) -->
+  <circle cx="535" cy="170" r="4" fill="#ef4444"/>
+  <path d="M 535 170 L 535 302 L 589 302" stroke="#ef4444" stroke-width="2.8" fill="none"/>
+  <!-- GND.3 -> BMP180 GND (Black/Gray) -->
+  <path d="M 481 300 L 520 300 L 520 332 L 589 332" stroke="#94a3b8" stroke-width="2.8" fill="none"/>
+  <!-- GPIO 21 -> BMP180 SDA (Blue) -->
+  <path d="M 481 335 L 508 335 L 508 362 L 589 362" stroke="#38bdf8" stroke-width="2.8" fill="none"/>
+  <!-- GPIO 22 -> BMP180 SCL (Yellow) -->
+  <path d="M 481 370 L 496 370 L 496 392 L 589 392" stroke="#facc15" stroke-width="2.8" fill="none"/>
 
   <!-- Legend Footer -->
-  <g transform="translate(155, 368)" font-size="11" fill="#cbd5e1">
-    <circle cx="0" cy="-4" r="5" fill="#ef4444"/><text x="10" y="0">Alimentação (3V3)</text>
-    <circle cx="135" cy="-4" r="5" fill="#94a3b8"/><text x="145" y="0">Terra (GND)</text>
-    <circle cx="240" cy="-4" r="5" fill="#22c55e"/><text x="250" y="0">Dados DHT22 (GPIO 4)</text>
-    <circle cx="400" cy="-4" r="5" fill="#f97316"/><text x="410" y="0">Sinal LED (GPIO 26)</text>
+  <g transform="translate(55, 444)" font-size="11" fill="#cbd5e1">
+    <circle cx="0" cy="-4" r="5" fill="#ef4444"/><text x="10" y="0">3V3 (VCC)</text>
+    <circle cx="95" cy="-4" r="5" fill="#94a3b8"/><text x="105" y="0">Terra (GND)</text>
+    <circle cx="200" cy="-4" r="5" fill="#22c55e"/><text x="210" y="0">DHT22 SDA (GPIO 4)</text>
+    <circle cx="355" cy="-4" r="5" fill="#38bdf8"/><text x="365" y="0">I2C SDA (GPIO 21)</text>
+    <circle cx="495" cy="-4" r="5" fill="#facc15"/><text x="505" y="0">I2C SCL (GPIO 22)</text>
+    <circle cx="630" cy="-4" r="5" fill="#f97316"/><text x="640" y="0">LED (GPIO 26)</text>
   </g>
 </svg>

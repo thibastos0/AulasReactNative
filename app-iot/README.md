@@ -27,7 +27,7 @@ Abaixo está o diagrama esquemático da montagem eletrônica configurada no simu
 | :--- | :---: | :--- |
 | **ESP32 DevKit v4** | `esp` (`board-esp32-devkit-c-v4`) | Microcontrolador principal com módulo Wi-Fi integrado, responsável por ler os sensores, acionar o LED e comunicar-se via MQTT. |
 | **Sensor DHT22** | `dht` (`wokwi-dht22`) | Sensor digital para medição de temperatura e umidade relativa do ar. |
-| **Sensor BMP180** | `bmp1` (`wokwi-bmp180` / `board-bmp180`) | Sensor barométrico digital via protocolo **I2C** para medição de pressão atmosférica e cálculo do ajuste de altímetro (**QNH**). |
+| **Sensor BMP180** | `bmp1` (`board-bmp180`) | Sensor barométrico digital via protocolo **I2C** para medição de pressão atmosférica e cálculo do ajuste de altímetro (**QNH**). |
 | **LED Vermelho + Resistor 220Ω** | `led1` (`wokwi-led`) + `r1` (`wokwi-resistor`) | Atuador para indicação visual acionado remotamente (o resistor de 220Ω limita a corrente para proteger o LED e a porta lógica). |
 
 ### Mapeamento de Pinos
@@ -78,7 +78,7 @@ Diferente de um botão local comum, o `Switch` do aplicativo não muda de estado
 1. **Acionamento no App (`App.tsx`)**: O usuário toca no `Switch` ➔ O app publica `"ON"` (ou `"OFF"`) em `iotdemo/thibastos/led/set`, bloqueia temporariamente o `Switch` e exibe um `ActivityIndicator` (com *timeout* de segurança de 7 segundos).
 2. **Roteamento no HiveMQ Broker**: O broker recebe o pacote via WebSocket e o encaminha instantaneamente via TCP para o ESP32.
 3. **Execução no ESP32 (`sketch.ino`)**: O callback `onMessage()` captura o comando, coloca o pino `GPIO 26` em nível `HIGH` (ou `LOW`) e atualiza a variável de estado `ledOn = true`.
-4. **Confirmação via Telemetria**: No próximo ciclo de leitura (a cada 3s), o ESP32 publica o JSON atualizado `{"temperature": ..., "humidity": ..., "led": true}` em `iotdemo/thibastos/sensor` ➔ O HiveMQ entrega ao App ➔ A interface atualiza o status visual para `"Ligado"` com o estado real confirmado pelo microcontrolador.
+4. **Confirmação via Telemetria**: No próximo ciclo de leitura (a cada 3s), o ESP32 publica o JSON atualizado `{"temperature": ..., "humidity": ..., "qnh": ..., "led": true}` em `iotdemo/thibastos/sensor` ➔ O HiveMQ entrega ao App ➔ A interface atualiza o status visual para `"Ligado"` com o estado real confirmado pelo microcontrolador.
 
 ### 🔌 Por que usamos Portas Diferentes? (`1883` TCP vs. `8884` WSS)
 
@@ -102,12 +102,12 @@ O **HiveMQ Broker** funciona de forma análoga ao **Firebase Realtime Database**
 O hook personalizado `src/hooks/useMqtt.ts` age exatamente como um **listener em tempo real do Firebase** (`onValue` do Realtime Database ou `onSnapshot` do Firestore):
 - Quando o componente é montado (`useEffect`), ele abre a conexão **WebSocket** com o broker e assina o tópico do sensor (`client.subscribe`).
 - Sempre que uma nova mensagem chega do HiveMQ, o callback `client.onMessageArrived` é disparado automaticamente.
-- Ele converte o texto JSON recebido e atualiza os estados do React (`setData`, `setLastUpdate`, `setStatus`), forçando a **re-renderização automática** dos cards de Temperatura, Umidade e estado do LED em `App.tsx`.
+- Ele converte o texto JSON recebido e atualiza os estados do React (`setData`, `setLastUpdate`, `setStatus`), forçando a **re-renderização automática** dos cards de QNH, Temperatura, Umidade e estado do LED em `App.tsx`.
 
 ### 🗂️ O que é um Broker MQTT e como funcionam os Tópicos?
 
 No protocolo **MQTT**, os dispositivos não precisam conhecer o endereço IP uns dos outros. Toda a comunicação passa pelo **Broker**, que atua como uma central de correios inteligente baseada no modelo **Publish/Subscribe (Publicar/Assinar)**:
-- **Publisher (Publicador)**: Quem envia a mensagem para um tópico (ex.: o ESP32 publicando a leitura do DHT22).
+- **Publisher (Publicador)**: Quem envia a mensagem para um tópico (ex.: o ESP32 publicando a leitura dos sensores DHT22 e BMP180).
 - **Subscriber (Assinante)**: Quem registra interesse em receber mensagens de um tópico (ex.: o app React Native escutando as atualizações do sensor).
 
 Os **Tópicos MQTT** são endereços organizados em uma **estrutura hierárquica separada por barras (`/`)**, semelhante a pastas de arquivos ou rotas de uma URL:
